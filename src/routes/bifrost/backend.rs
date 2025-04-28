@@ -17,11 +17,10 @@ async fn post_backend_z2m(
 ) -> BifrostApiResult<Json<()>> {
     log::info!("Adding new z2m backend: {name:?}");
 
-    let mut mgr = state.manager();
-
     let svc = Z2mBackend::new(name.clone(), server, state.config(), state.res.clone())?;
     let name = format!("z2m-{name}");
 
+    let mut mgr = state.manager();
     mgr.register_service(&name, svc).await?;
     mgr.start(&name).await?;
 
