@@ -1,8 +1,10 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::extract::ws::{Message, WebSocket};
 use axum::extract::{State, WebSocketUpgrade};
 use axum::response::Response;
+use bytes::Bytes;
 use tokio::select;
 
 use bifrost_api::backend::BackendRequest;
@@ -23,6 +25,8 @@ struct WebSocketTask {
 
 #[allow(clippy::unnecessary_wraps, clippy::unused_self)]
 impl WebSocketTask {
+    const KEEP_ALIVE: Duration = Duration::from_secs(2);
+
     pub fn new(state: AppState, ws: WebSocket) -> Self {
         let mgr = state.manager();
 
@@ -35,6 +39,13 @@ impl WebSocketTask {
         self.ws.send(Message::Text(text)).await?;
 
         Ok(())
+    }
+
+    async fn send_ping(&mut self) -> BifrostApiResult<Option<Update>> {
+        // Sending pings allow us to detect dead connections
+        self.ws.send(Message::Ping(Bytes::new())).await?;
+
+        Ok(None)
     }
 
     fn handle_websocket_message(&self, msg: &Message) -> BifrostApiResult<Option<Update>> {
@@ -94,6 +105,7 @@ impl WebSocketTask {
 
         loop {
             let reply = select! {
+                () = tokio::time::sleep(Self::KEEP_ALIVE) => self.send_ping().await,
                 Some(msg) = self.ws.recv() => self.handle_websocket_message(&msg?),
                 backend_event = backend_events.recv() => self.handle_backend_event(&backend_event?),
                 service_event = svc_events.recv() => self.handle_service_event(service_event).await,
