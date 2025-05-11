@@ -70,6 +70,20 @@ pub struct ScenePalette {
     pub effects_v2: Option<Vec<PaletteEffect>>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct ScenePaletteUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<Vec<ScenePaletteColor>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color_temperature: Option<Vec<ScenePaletteColorTemperature>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dimming: Option<Vec<DimmingUpdate>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effects: Option<Vec<PaletteEffect>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub effects_v2: Option<Vec<PaletteEffect>>,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Scene {
     pub actions: Vec<SceneActionElement>,
