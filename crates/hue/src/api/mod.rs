@@ -38,7 +38,8 @@ pub use light::{
 pub use resource::{RType, ResourceLink, ResourceRecord};
 pub use room::{Room, RoomArchetype, RoomMetadata, RoomMetadataUpdate, RoomUpdate};
 pub use scene::{
-    Scene, SceneAction, SceneActionElement, SceneActive, SceneMetadata, SceneRecall, SceneStatus,
+    Scene, SceneAction, SceneActionElement, SceneActive, SceneMetadata, SceneMetadataUpdate,
+    ScenePalette, ScenePaletteColor, ScenePaletteColorTemperature, SceneRecall, SceneStatus,
     SceneStatusEnum, SceneUpdate,
 };
 use serde::ser::SerializeMap;

@@ -91,23 +91,8 @@ pub struct Scene {
     pub auto_dynamic: bool,
     pub group: ResourceLink,
     pub metadata: SceneMetadata,
-    /* palette: { */
-    /*     color: [], */
-    /*     color_temperature: [ */
-    /*         { */
-    /*             color_temperature: { */
-    /*                 mirek: u32 */
-    /*             }, */
-    /*             dimming: { */
-    /*                 brightness: f64, */
-    /*             } */
-    /*         } */
-    /*     ], */
-    /*     dimming: [], */
-    /*     effects: [] */
-    /* }, */
-    #[serde(default, skip_serializing_if = "Value::is_null")]
-    pub palette: Value,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub palette: Option<ScenePalette>,
     #[serde(default)]
     pub speed: f64,
     pub status: Option<SceneStatus>,
@@ -164,7 +149,7 @@ pub struct SceneUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<SceneMetadataUpdate>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub palette: Option<Value>,
+    pub palette: Option<ScenePaletteUpdate>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub speed: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -230,7 +215,9 @@ impl AddAssign<&SceneUpdate> for Scene {
             self.metadata += md;
         }
         if let Some(palette) = &upd.palette {
-            self.palette.clone_from(palette);
+            if let Some(pal) = &mut self.palette {
+                *pal += palette;
+            }
         }
         if let Some(speed) = upd.speed {
             self.speed = speed;
