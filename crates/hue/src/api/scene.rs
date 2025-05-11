@@ -199,6 +199,28 @@ impl SceneUpdate {
     }
 }
 
+impl AddAssign<&ScenePaletteUpdate> for ScenePalette {
+    fn add_assign(&mut self, rhs: &ScenePaletteUpdate) {
+        if let Some(color) = &rhs.color {
+            self.color.clone_from(color);
+        }
+        if let Some(color_temperature) = &rhs.color_temperature {
+            self.color_temperature.clone_from(color_temperature);
+        }
+        if let Some(dimming) = &rhs.dimming {
+            self.dimming.clone_from(dimming);
+        }
+        if let Some(effects) = &rhs.effects {
+            self.effects.clone_from(effects);
+        }
+        if let Some(effects_v2) = &rhs.effects_v2 {
+            if let Some(fx) = &mut self.effects_v2 {
+                fx.clone_from(effects_v2);
+            }
+        }
+    }
+}
+
 impl AddAssign<&SceneUpdate> for Scene {
     fn add_assign(&mut self, upd: &SceneUpdate) {
         if let Some(actions) = &upd.actions {
