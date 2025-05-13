@@ -33,7 +33,9 @@ use hue::api::{
 use hue::clamp::Clamp;
 use hue::error::HueError;
 use hue::scene_icons;
-use hue::zigbee::{EffectType, GradientParams, GradientStyle, HueZigbeeUpdate};
+use hue::zigbee::{
+    EffectType, EntertainmentZigbeeStream, GradientParams, GradientStyle, HueZigbeeUpdate,
+};
 use z2m::api::{ExposeLight, Message, RawMessage};
 use z2m::convert::{
     ExtractColorTemperature, ExtractDeviceProductData, ExtractDimming, ExtractLightColor,
@@ -938,7 +940,9 @@ impl Z2mBackend {
                     // We set the entertainment mode fade speed ("smoothing")
                     // to fit the target frame rate, to ensure perfectly smooth
                     // transitionss, even at low frame rates!
-                    es.stream.set_smoothing_duration(self.throttle.interval())?;
+                    /* es.stream.set_smoothing_duration(self.throttle.interval())?; */
+                    es.stream
+                        .set_smoothing(EntertainmentZigbeeStream::DEFAULT_SMOOTHING);
 
                     log::info!("Starting entertainment mode stream at {} fps", self.fps);
 

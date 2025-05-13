@@ -101,12 +101,15 @@ impl EntStream {
     }
 
     pub async fn start_stream(&mut self, z2mws: &mut Z2mWebSocket) -> ApiResult<()> {
-        log::warn!("STREAM START (test branch)");
+        log::warn!("STREAM START (test branch2)");
         log::debug!("Entertainment addrs: {:#?}", &self.addrs);
         log::debug!("Entertainment modes: {:#?}", &self.modes);
         for (dev, segments) in &self.addrs {
             let z2mreq = Self::z2m_set_entertainment_brightness(0xFE);
             z2mws.send(dev, &z2mreq).await?;
+
+            log::warn!("sleep between configs");
+            tokio::time::sleep(Duration::from_millis(250)).await;
 
             if segments.len() <= 1 {
                 continue;
@@ -114,7 +117,6 @@ impl EntStream {
 
             let mapping = self.stream.segment_mapping(segments)?;
             z2mws.send_zigbee_message(dev, &mapping).await?;
-            tokio::time::sleep(Duration::from_millis(250)).await;
         }
 
         /* self.stop_stream(z2mws).await?; */

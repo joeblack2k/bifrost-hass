@@ -38,6 +38,11 @@ impl Z2mWebSocket {
         /*     self.name */
         /* ); */
 
+        log::warn!(
+            "[testbranch] {topic} {}",
+            serde_json::to_string(&payload).unwrap()
+        );
+
         let api_req = match &payload {
             Z2mRequest::GroupMemberAdd(value) => RawMessage {
                 topic: "bridge/request/group/members/add".into(),
