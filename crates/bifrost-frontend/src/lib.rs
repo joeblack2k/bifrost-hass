@@ -5,6 +5,7 @@ pub mod component;
 pub mod daisyui;
 pub mod grommet_icons;
 pub mod hue_client;
+pub mod hue_icons;
 pub mod icons;
 pub mod page;
 pub mod state;
