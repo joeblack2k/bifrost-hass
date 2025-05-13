@@ -4,6 +4,7 @@ pub mod colortemp;
 pub mod config;
 pub mod enable_input;
 pub mod group;
+pub mod groups;
 pub mod light;
 pub mod markup;
 pub mod service;
