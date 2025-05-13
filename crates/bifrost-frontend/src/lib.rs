@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(unused_qualifications)]
 
+pub mod daisyui;
 pub mod hue_client;
 pub mod icons;
 pub mod state;
