@@ -1,5 +1,9 @@
 use dioxus::prelude::*;
 
+use hue::api::RoomArchetype;
+
+use crate::hue_icons;
+
 #[component]
 pub fn SvgIcon(path: String) -> Element {
     rsx! {
@@ -150,6 +154,61 @@ pub fn Spinner() -> Element {
                 class: "spinner",
                 d: "M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z",
             }
+        }
+    }
+}
+
+#[allow(clippy::match_same_arms)]
+const fn room_to_icon_path(archetype: RoomArchetype) -> &'static str {
+    match archetype {
+        RoomArchetype::LivingRoom => hue_icons::ROOM_LIVING,
+        RoomArchetype::Kitchen => hue_icons::ROOM_KITCHEN,
+        RoomArchetype::Dining => hue_icons::ROOM_DINING,
+        RoomArchetype::Bedroom => hue_icons::ROOM_BEDROOM,
+        RoomArchetype::KidsBedroom => hue_icons::ROOM_KIDS,
+        RoomArchetype::Bathroom => hue_icons::ROOM_BATHROOM,
+        RoomArchetype::Nursery => hue_icons::ROOM_NURSERY,
+        RoomArchetype::Recreation => hue_icons::ROOM_RECREATION,
+        RoomArchetype::Office => hue_icons::ROOM_OFFICE,
+        RoomArchetype::Gym => hue_icons::ROOM_GYM,
+        RoomArchetype::Hallway => hue_icons::ROOM_HALLWAY,
+        RoomArchetype::Toilet => hue_icons::ROOM_TOILET,
+        RoomArchetype::FrontDoor => hue_icons::ROOM_FRONT_DOOR,
+        RoomArchetype::Garage => hue_icons::ROOM_GARAGE,
+        RoomArchetype::Terrace => hue_icons::ROOM_TERRACE,
+        RoomArchetype::Garden => hue_icons::ROOM_OUTDOORS,
+        RoomArchetype::Driveway => hue_icons::ROOM_DRIVEWAY,
+        RoomArchetype::Carport => hue_icons::ROOM_CARPORT,
+        RoomArchetype::Home => hue_icons::HOME,
+        RoomArchetype::Downstairs => hue_icons::DOWNSTAIRS,
+        RoomArchetype::Upstairs => hue_icons::UPSTAIRS,
+        RoomArchetype::TopFloor => hue_icons::UPSTAIRS, // ROOM_TOPFLOOR,
+        RoomArchetype::Attic => hue_icons::ROOM_ATTIC,
+        RoomArchetype::GuestRoom => hue_icons::ROOM_GUESTROOM,
+        RoomArchetype::Staircase => hue_icons::ROOM_STAIRS,
+        RoomArchetype::Lounge => hue_icons::ROOM_LOUNGE,
+        RoomArchetype::ManCave => hue_icons::ROOM_GAMES,
+        RoomArchetype::Computer => hue_icons::ROOM_COMPUTER,
+        RoomArchetype::Studio => hue_icons::ROOM_STUDIO,
+        RoomArchetype::Music => hue_icons::SYNC_MUSIC,
+        RoomArchetype::Tv => hue_icons::ROOM_COMPUTER, // ROOM_TV,
+        RoomArchetype::Reading => hue_icons::HOME,     // ROOM_READING,
+        RoomArchetype::Closet => hue_icons::ROOM_CLOSET,
+        RoomArchetype::Storage => hue_icons::ROOM_STORAGE,
+        RoomArchetype::LaundryRoom => hue_icons::ROOM_LAUNDRY,
+        RoomArchetype::Balcony => hue_icons::ROOM_BALCONY,
+        RoomArchetype::Porch => hue_icons::ROOM_PORCH,
+        RoomArchetype::Barbecue => hue_icons::ROOM_BBQ,
+        RoomArchetype::Pool => hue_icons::ROOM_POOL,
+        RoomArchetype::Other => hue_icons::ROOM_OTHER,
+    }
+}
+
+#[component]
+pub fn RoomIcon(archetype: RoomArchetype) -> Element {
+    rsx! {
+        SvgIconFilled {
+            path: room_to_icon_path(archetype)
         }
     }
 }
