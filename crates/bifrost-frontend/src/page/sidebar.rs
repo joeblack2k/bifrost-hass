@@ -4,7 +4,7 @@ use hue::stream::HueStreamLightsV2;
 use z2m::hexcolor::HexColor;
 
 use crate::grommet_icons::{
-    GrAction, GrInfo, GrIteration, GrServices, GrStatusInfo, GrStorage, GrSystem,
+    GrAction, GrCli, GrInfo, GrIteration, GrServices, GrStatusInfo, GrStorage, GrSystem,
 };
 use crate::page::footer::Footer;
 use crate::{LOGO_SVG, Route, use_context_signal};
@@ -43,6 +43,7 @@ pub fn Sidebar() -> Element {
                     li { Link { to: Route::ServicesView,  GrServices {}   "Services"   } }
                     li { Link { to: Route::Backends,      GrAction {}     "Backends"   } }
                     li { Link { to: Route::Config,        GrSystem {}     "Config"     } }
+                    li { Link { to: Route::LogsView,      GrCli {}        "Logs"       } }
                     li { Link { to: Route::About,         GrStatusInfo {} "About page" } }
                 }
 

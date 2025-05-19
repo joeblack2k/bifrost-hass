@@ -26,6 +26,7 @@ use crate::component::config::Config;
 use crate::component::groups::GroupsView;
 use crate::component::light_details::LightDetailView;
 use crate::component::lights::LightsView;
+use crate::component::logs::LogsView;
 use crate::component::resources::ResourcesView;
 use crate::component::service::ServicesView;
 use crate::hue_client::HueClient;
@@ -84,6 +85,9 @@ pub enum Route {
 
     #[route("/backends")]
     Backends,
+
+    #[route("/logs")]
+    LogsView,
 
     #[route("/about")]
     About,
