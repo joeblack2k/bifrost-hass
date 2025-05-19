@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::time::Duration;
 
+use bifrost_api::logging::LogRecord;
 use dioxus::prelude::*;
 use futures_util::stream::StreamExt;
 use gloo_net::websocket::Message;
@@ -198,6 +199,8 @@ impl State {
                         }
                         Update::ServiceUpdate(su) => {
                             self.slist.write().services.insert(su.id, su);
+                        }
+                        Update::LogEvent(evt) => {
                         }
                     }
                 }
