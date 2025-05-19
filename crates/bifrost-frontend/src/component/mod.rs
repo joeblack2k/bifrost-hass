@@ -9,6 +9,7 @@ pub mod groups;
 pub mod light;
 pub mod light_details;
 pub mod lights;
+pub mod logs;
 pub mod markup;
 pub mod resources;
 pub mod service;
