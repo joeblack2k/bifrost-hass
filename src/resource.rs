@@ -60,7 +60,7 @@ impl Resources {
         for id in self.get_resource_ids_by_type(RType::Light) {
             let light: &Light = self.get_id(id)?;
             if light.is_streaming() {
-                log::warn!("Clearing streaming state of Light {}", id);
+                log::warn!("Clearing streaming state of Light {id}");
                 self.update(&id, Light::stop_streaming)?;
             }
         }
