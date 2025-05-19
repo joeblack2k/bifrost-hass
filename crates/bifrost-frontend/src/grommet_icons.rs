@@ -86,3 +86,12 @@ pub fn GrStatusInfo() -> Element {
         }
     }
 }
+
+#[component]
+pub fn GrCli() -> Element {
+    rsx! {
+        SvgIcon {
+            path: "M1 1h22v22H1V1zm0 4h22M5 1v4m6 11h8M5 10l3 3-3 3"
+        }
+    }
+}
