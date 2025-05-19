@@ -10,12 +10,6 @@ pub fn Config() -> Element {
     let config = use_context::<Signal<Result<AppConfig, BifrostError>>>();
 
     rsx! {
-        Section { "Config" }
-        div {
-            class: "w-full",
-            class: "badge badge-soft",
-            "Foo"
-        }
         match &*config.read() {
             Ok(cfg) => {
                 rsx! {
@@ -32,8 +26,10 @@ pub fn Config() -> Element {
             Err(_err) => rsx! {
                 div {
                     class: "skeleton",
-                    class: "w-64",
-                    class: "h-32",
+                    class: "w-full",
+                    class: "h-100",
+                    class: "flex items-center justify-center",
+                    "Connecting to Bifrost.."
                 }
             },
         }

@@ -16,54 +16,33 @@ use crate::{CLIENT, use_context_signal};
 pub fn Z2mServerView(name: String, server: Z2mServer) -> Element {
     rsx! {
         div {
-            class: "bg-base-200 w-full mt-4 p-5 border-b-2 border-primary/40 rounded-t-xl",
-
             div {
+                class: "bg-base-200 w-full mt-4 p-5 border-b-2 border-primary/40 rounded-t-xl",
                 class: "flex gap-4 *:text-nowrap",
                 span { class: "badge badge-soft font-mono", "{name}" }
             }
+            div {
+                class: "bg-base-300 p-5 rounded-b-xl font-mono grid",
+                style: "grid-template-columns: 1fr 3fr;",
+                span { "url:" } span { "{server.url}" },
+                span { "group_prefix:" }
+                {
+                    if let Some(gp) = &server.group_prefix {
+                        rsx! {
+                            span { "{gp}" }
+                        }
+                    } else {
+                        rsx! {
+                            span {
+                                class: "text-base-content/[50%]",
+                                "<no prefix>"
+                            }
+                        }
+                    }
+                }
+                span { "streaming_fps:" } span { "{server.streaming_fps:?}" },
+            }
         }
-        div {
-            class: "bg-base-300 p-5 rounded-b-xl font-mono grid",
-            style: "grid-template-columns: 1fr 5fr;",
-            span { "url:" } span { "{server.url}" },
-            span { "group_prefix:" } span { "{server.group_prefix:?}" },
-            span { "streaming_fps:" } span { "{server.streaming_fps:?}" },
-        }
-
-
-        /* Header { "{name}" } */
-        /* div { */
-        /*     class: "card", */
-        /*     div { */
-        /*         class: "card-body", */
-        /*         ul { */
-        /*             class: "list", */
-
-        /*             li { */
-        /*                 class: "list-row", */
-        /*                 div { */
-        /*                     div { "url: " }, */
-        /*                     div { */
-        /*                         class: "badge badge-neutral", */
-        /*                         "{server.url}" */
-        /*                     } */
-        /*                 } */
-        /*             } */
-
-        /*             li { */
-        /*                 class: "list-row", */
-        /*                 div { */
-        /*                     div { "group_prefix" } */
-        /*                     div { */
-        /*                         class: "badge badge-neutral", */
-        /*                         "{server.group_prefix:?}" */
-        /*                     } */
-        /*                 } */
-        /*             } */
-        /*         } */
-        /*     } */
-        /* } */
     }
 }
 
@@ -125,14 +104,15 @@ pub fn Z2mServerAdd(show: Signal<bool>) -> Element {
                     }
                 },
 
+                legend {
+                    class: "fieldset-legend",
+                    "Add new z2m backend"
+                }
+
+                hr {}
+
                 fieldset {
                     class: "fieldset",
-                    legend {
-                        class: "fieldset-legend",
-                        "Add new z2m backend"
-                    }
-
-                    hr {}
 
                     label {
                         class: "fieldset-label",

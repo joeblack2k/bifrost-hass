@@ -18,12 +18,10 @@ pub fn Backends() -> Element {
             rsx! {
                 div {
                     class: "flex flex-col gap-4",
-
+                    class: "max-w-200",
 
                     for (name, server) in cfg.z2m.servers.clone() {
-                        div {
-                            Z2mServerView { name, server }
-                        }
+                        Z2mServerView { name, server }
                     }
 
                     button {
