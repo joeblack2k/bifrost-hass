@@ -94,33 +94,3 @@ pub fn ServicesView() -> Element {
         }
     }
 }
-
-/* #[component] */
-/* pub fn ServicesView(svcs: ServiceList) -> Element { */
-/*     rsx! { */
-/*         h2 { class: "card-title", "Services" } */
-
-/*         table { */
-/*             class: "table table-zebra", */
-/*             thead { */
-/*                 tr { */
-/*                     th { "Name"  } */
-/*                     th { "State" } */
-/*                     th {         } */
-/*                     th {         } */
-/*                 } */
-/*             } */
-/*             tbody { */
-/*                 for (uuid, svc) in svcs.services { */
-/*                     tr { */
-/*                         key: "{uuid}", */
-/*                         td { "{svc.name}"    } */
-/*                         td { ServiceStateIcon { state: svc.state } " {svc.state:?}" } */
-/*                         td { ServiceStopButton { svc: svc.clone() } } */
-/*                         td { ServiceStartButton { svc: svc } } */
-/*                     } */
-/*                 } */
-/*             } */
-/*         } */
-/*     } */
-/* } */

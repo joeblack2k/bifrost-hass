@@ -3,8 +3,6 @@ use std::num::NonZeroU32;
 
 use dioxus::prelude::*;
 use reqwest::Url;
-/* use serde::de::DeserializeOwned; */
-/* use serde_json::Value; */
 
 use bifrost_api::config::Z2mServer;
 
@@ -13,17 +11,7 @@ use crate::component::enable_input::EnableInput;
 use crate::toast::{Toast, ToastMaster};
 use crate::{CLIENT, use_context_signal};
 
-/* fn parse_form_data<T: DeserializeOwned>(form: &FormData) -> Result<T, serde_json::Error> { */
-/*     let mut hm = HashMap::new(); */
-/*     for (key, values) in form.values() { */
-/*         assert!(values.len() == 1); */
-/*         hm.insert(key, values[0].clone()); */
-/*     } */
-
-/*     let data: Value = serde_json::to_value(&hm)?; */
-/*     serde_json::from_value(data) */
-/* } */
-
+#[allow(clippy::option_if_let_else)]
 #[component]
 pub fn Z2mServerView(name: String, server: Z2mServer) -> Element {
     rsx! {
