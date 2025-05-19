@@ -3,11 +3,12 @@ use std::collections::BTreeMap;
 use dioxus::prelude::*;
 use uuid::Uuid;
 
-use hue::api::{Resource, ResourceRecord};
+use hue::api::{GroupedLight, Resource, ResourceRecord};
 
-use crate::component::group::GroupView;
+use crate::component::group::{GroupOnIcon, GroupView};
 use crate::daisyui::Level;
 use crate::daisyui::badge::Badge;
+use crate::icons::RoomIcon;
 use crate::use_context_signal;
 
 #[component]
@@ -23,12 +24,22 @@ pub fn GroupsView() -> Element {
 
                 if let Resource::Room(room) = &item.obj {
                     div {
-                        class: "max-w-220",
                         key: "{uuid}",
                         div {
                             class: "bg-base-200 w-full p-5 border-b-2 border-primary/40 rounded-t-xl",
                             div {
-                                class: "flex flex-col lg:flex-row gap-4 *:text-nowrap",
+                                class: "flex flex-col lg:flex-row *:text-nowrap",
+                                RoomIcon { archetype: room.metadata.archetype }
+
+                                if let Some(gl) = room.grouped_light_service() {
+                                    if let Some(ResourceRecord {
+                                        obj: Resource::GroupedLight(GroupedLight { on: Some(on), ..}),
+                                        ..
+                                    }) = res.get(&gl.rid) {
+                                        GroupOnIcon { id: gl.rid, on: *on }
+                                    }
+                                }
+
                                 div {
                                     class: "grow",
                                     Badge {
@@ -39,18 +50,18 @@ pub fn GroupsView() -> Element {
                                     }
                                 }
 
-                                div {
-                                    class: "badge badge-soft badge-info font-mono",
+                                Badge {
+                                    level: Level::Info,
+                                    soft: true,
+                                    class: "font-mono",
                                     { item.id_v1.as_deref().unwrap_or("-") }
                                 }
                                 "|",
-                                div {
-                                    Badge {
-                                        level: Level::Info,
-                                        soft: true,
-                                        class: "font-mono",
-                                        "{uuid}"
-                                    }
+                                Badge {
+                                    level: Level::Info,
+                                    soft: true,
+                                    class: "font-mono",
+                                    "{uuid}"
                                 }
                             }
                         }
