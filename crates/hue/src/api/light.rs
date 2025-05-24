@@ -582,6 +582,13 @@ pub struct LightEffectParameters {
     pub speed: Option<f32>,
 }
 
+impl LightEffectParameters {
+    #[must_use]
+    pub fn color_temperature_mirek(&self) -> Option<u16> {
+        self.color_temperature.and_then(|ct| ct.mirek)
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct LightEffectValues {
     pub effect_values: Vec<LightEffect>,
@@ -686,6 +693,21 @@ impl LightUpdate {
     #[must_use]
     pub fn with_gradient(self, gradient: Option<LightGradientUpdate>) -> Self {
         Self { gradient, ..self }
+    }
+
+    #[must_use]
+    pub fn on(&self) -> Option<bool> {
+        self.on.map(|on| on.on)
+    }
+
+    #[must_use]
+    pub fn color_temperature_mirek(&self) -> Option<u16> {
+        self.color_temperature.and_then(|ct| ct.mirek)
+    }
+
+    #[must_use]
+    pub fn color_xy(&self) -> Option<XY> {
+        self.color.map(|color| color.xy)
     }
 }
 
