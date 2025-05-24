@@ -221,7 +221,7 @@ impl State {
         self.try_get(id).ok_or(HueError::NotFound(*id))
     }
 
-    pub fn get_mut(&mut self, id: &Uuid) -> HueResult<&mut Resource> {
+    pub fn get_id_mut(&mut self, id: &Uuid) -> HueResult<&mut Resource> {
         self.res.get_mut(id).ok_or(HueError::NotFound(*id))
     }
 

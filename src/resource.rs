@@ -110,7 +110,7 @@ impl Resources {
         for<'a> &'a mut T: TryFrom<&'a mut Resource, Error = HueError>,
     {
         let id_v1 = self.id_v1_scope(id, self.state.get_id(id)?);
-        let resource = self.state.get_mut(id)?;
+        let resource = self.state.get_id_mut(id)?;
 
         let obj: &mut T = resource.try_into()?;
 
@@ -151,7 +151,7 @@ impl Resources {
     {
         let ids = self.state.res.keys().copied().collect_vec();
         for id in &ids {
-            let obj = self.state.get_mut(id)?;
+            let obj = self.state.get_id_mut(id)?;
             let x: Result<&mut T, _> = obj.try_into();
             if x.is_ok() {
                 self.try_update(id, |obj: &mut T| {
