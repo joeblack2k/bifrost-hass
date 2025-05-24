@@ -210,33 +210,11 @@ impl Resources {
         log::info!("Deleting {link:?}..");
 
         // Delete references to this object from other objects
-        self.update_by_type(|bridge_home: &mut BridgeHome| {
-            bridge_home.children.remove(link);
-            bridge_home.services.remove(link);
-        })?;
-
-        self.update_by_type(|device: &mut Device| {
-            device.services.remove(link);
-        })?;
-
-        self.update_by_type(|ec: &mut EntertainmentConfiguration| {
-            ec.locations
-                .service_locations
-                .retain(|sl| sl.service != *link);
-            ec.channels
-                .retain(|chan| !chan.members.iter().any(|c| c.service == *link));
-            ec.light_services.retain(|ls| ls != link);
-        })?;
-
-        self.update_by_type(|room: &mut Room| {
-            room.children.remove(link);
-            room.services.remove(link);
-        })?;
-
-        self.update_by_type(|zone: &mut Zone| {
-            zone.children.remove(link);
-            zone.services.remove(link);
-        })?;
+        self.update_by_type(|bridge_home: &mut BridgeHome| bridge_home.delete_link(link))?;
+        self.update_by_type(|device: &mut Device| device.delete_link(link))?;
+        self.update_by_type(|ec: &mut EntertainmentConfiguration| ec.delete_link(link))?;
+        self.update_by_type(|room: &mut Room| room.delete_link(link))?;
+        self.update_by_type(|zone: &mut Zone| zone.delete_link(link))?;
 
         // Get id_v1 before deleting
         let id_v1 = self.id_v1_scope(&link.rid, self.state.get(link)?);
