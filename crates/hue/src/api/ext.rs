@@ -64,7 +64,6 @@ pub trait ResourceExt {
     fn delete_link(&mut self, _rlink: &ResourceLink) {}
 }
 
-/* impl ResourceExt for AuthV1 {} */
 impl ResourceExt for BehaviorInstance {
     fn rtype(&self) -> RType {
         RType::BehaviorInstance

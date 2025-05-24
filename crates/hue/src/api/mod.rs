@@ -84,7 +84,6 @@ impl Serialize for Stub {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Resource {
-    AuthV1(ResourceLink),
     BehaviorInstance(BehaviorInstance),
     BehaviorScript(BehaviorScript),
     Bridge(Bridge),
@@ -131,7 +130,6 @@ impl Resource {
     #[must_use]
     pub const fn rtype(&self) -> RType {
         match self {
-            Self::AuthV1(_) => RType::AuthV1,
             Self::BehaviorInstance(_) => RType::BehaviorInstance,
             Self::BehaviorScript(_) => RType::BehaviorScript,
             Self::Bridge(_) => RType::Bridge,
@@ -176,7 +174,6 @@ impl Resource {
     #[must_use]
     pub const fn owner(&self) -> Option<ResourceLink> {
         match self {
-            Self::AuthV1(_) => None,
             Self::BehaviorInstance(_) => None,
             Self::BehaviorScript(_) => None,
             Self::Bridge(obj) => Some(obj.owner),
@@ -267,8 +264,6 @@ macro_rules! resource_conversion_impl {
     };
 }
 
-// AuthV1 is not a real resource (only used in links)
-// resource_conversion_impl!(AuthV1);
 resource_conversion_impl!(BehaviorInstance);
 resource_conversion_impl!(BehaviorScript);
 resource_conversion_impl!(Bridge);

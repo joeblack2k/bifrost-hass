@@ -114,7 +114,7 @@ mod tests {
     use serde_json::json;
     use uuid::Uuid;
 
-    use crate::api::{RType, Resource, ResourceLink, ResourceRecord};
+    use crate::api::{Bridge, RType, Resource, ResourceLink, ResourceRecord, TimeZone};
     use crate::event::{Add, Delete, Event, EventBlock, Update};
 
     // just some uuid for testing
@@ -125,9 +125,15 @@ mod tests {
         let obj = ResourceRecord::new(
             ID,
             None,
-            Resource::AuthV1(ResourceLink {
-                rid: ID,
-                rtype: RType::AuthV1,
+            Resource::Bridge(Bridge {
+                bridge_id: String::from("foo"),
+                owner: ResourceLink {
+                    rid: ID,
+                    rtype: RType::AuthV1,
+                },
+                time_zone: TimeZone {
+                    time_zone: String::from("bar"),
+                },
             }),
         );
 
