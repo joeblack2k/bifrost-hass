@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::io::Read;
 
 use serde::{Deserialize, Serialize};
 use serde_yml::Value;
 use uuid::Uuid;
 
-use hue::api::{DeviceArchetype, Resource};
+use hue::api::{DeviceArchetype, Resource, ResourceLink};
 use hue::error::{HueError, HueResult};
 use hue::version::SwVersion;
 
@@ -217,12 +217,32 @@ impl State {
         self.res.get(id)
     }
 
+    pub fn get(&self, rlink: &ResourceLink) -> HueResult<&Resource> {
+        self.try_get(&rlink.rid)
+            .filter(|obj| obj.rtype() == rlink.rtype)
+            .ok_or(HueError::NotFound(rlink.rid))
+    }
+
     pub fn get_id(&self, id: &Uuid) -> HueResult<&Resource> {
         self.try_get(id).ok_or(HueError::NotFound(*id))
     }
 
     pub fn get_id_mut(&mut self, id: &Uuid) -> HueResult<&mut Resource> {
         self.res.get_mut(id).ok_or(HueError::NotFound(*id))
+    }
+
+    #[must_use]
+    pub fn all_owned_resources(&self, rlink: &ResourceLink) -> HashSet<ResourceLink> {
+        self.res
+            .iter()
+            .filter_map(|(rid, res)| {
+                if res.owner() == Some(*rlink) {
+                    Some(ResourceLink::new(*rid, res.rtype()))
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     pub fn insert(&mut self, key: Uuid, value: Resource) {
