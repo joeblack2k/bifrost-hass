@@ -60,7 +60,7 @@ pub use zigbee_device_discovery::{
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, from_value, json};
+use serde_json::{Value, json};
 
 use crate::error::{HueError, HueResult};
 use crate::legacy_api::ApiLightStateUpdate;
@@ -214,50 +214,6 @@ impl Resource {
             Self::Tamper(_) => None,
             Self::ZgpConnectivity(_) => None,
         }
-    }
-
-    pub fn from_value(rtype: RType, obj: Value) -> HueResult<Self> {
-        let res = match rtype {
-            RType::AuthV1 => Self::AuthV1(from_value(obj)?),
-            RType::BehaviorInstance => Self::BehaviorInstance(from_value(obj)?),
-            RType::BehaviorScript => Self::BehaviorScript(from_value(obj)?),
-            RType::Bridge => Self::Bridge(from_value(obj)?),
-            RType::BridgeHome => Self::BridgeHome(from_value(obj)?),
-            RType::Button => Self::Button(from_value(obj)?),
-            RType::Device => Self::Device(from_value(obj)?),
-            RType::DevicePower => Self::DevicePower(from_value(obj)?),
-            RType::DeviceSoftwareUpdate => Self::DeviceSoftwareUpdate(from_value(obj)?),
-            RType::Entertainment => Self::Entertainment(from_value(obj)?),
-            RType::EntertainmentConfiguration => Self::EntertainmentConfiguration(from_value(obj)?),
-            RType::GeofenceClient => Self::GeofenceClient(from_value(obj)?),
-            RType::Geolocation => Self::Geolocation(from_value(obj)?),
-            RType::GroupedLight => Self::GroupedLight(from_value(obj)?),
-            RType::GroupedLightLevel => Self::GroupedLightLevel(from_value(obj)?),
-            RType::GroupedMotion => Self::GroupedMotion(from_value(obj)?),
-            RType::Homekit => Self::Homekit(from_value(obj)?),
-            RType::Light => Self::Light(from_value(obj)?),
-            RType::LightLevel => Self::LightLevel(from_value(obj)?),
-            RType::Matter => Self::Matter(from_value(obj)?),
-            RType::Motion => Self::Motion(from_value(obj)?),
-            RType::PrivateGroup => Self::PrivateGroup(from_value(obj)?),
-            RType::PublicImage => Self::PublicImage(from_value(obj)?),
-            RType::RelativeRotary => Self::RelativeRotary(from_value(obj)?),
-            RType::Room => Self::Room(from_value(obj)?),
-            RType::Scene => Self::Scene(from_value(obj)?),
-            RType::SmartScene => Self::SmartScene(from_value(obj)?),
-            RType::Taurus => Self::Taurus(from_value(obj)?),
-            RType::Temperature => Self::Temperature(from_value(obj)?),
-            RType::ZigbeeConnectivity => Self::ZigbeeConnectivity(from_value(obj)?),
-            RType::ZigbeeDeviceDiscovery => Self::ZigbeeDeviceDiscovery(from_value(obj)?),
-            RType::Zone => Self::Zone(from_value(obj)?),
-            RType::CameraMotion => Self::CameraMotion(obj),
-            RType::Contact => Self::Contact(obj),
-            RType::MatterFabric => Self::MatterFabric(obj),
-            RType::ServiceGroup => Self::ServiceGroup(obj),
-            RType::Tamper => Self::Tamper(obj),
-            RType::ZgpConnectivity => Self::ZgpConnectivity(obj),
-        };
-        Ok(res)
     }
 }
 
