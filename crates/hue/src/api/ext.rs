@@ -2,58 +2,67 @@ use crate::api::{
     BehaviorInstance, BehaviorScript, Bridge, BridgeHome, Button, CameraMotion, Contact, Device,
     DevicePower, DeviceSoftwareUpdate, Entertainment, EntertainmentConfiguration, GeofenceClient,
     Geolocation, GroupedLight, GroupedLightLevel, GroupedMotion, Homekit, Light, LightLevel,
-    Matter, MatterFabric, Motion, PrivateGroup, PublicImage, RType, RelativeRotary, ResourceLink,
-    Room, Scene, ServiceGroup, SmartScene, Tamper, Taurus, Temperature, ZgpConnectivity,
-    ZigbeeConnectivity, ZigbeeDeviceDiscovery, Zone,
+    Matter, MatterFabric, Motion, PrivateGroup, PublicImage, RType, RelativeRotary, Resource,
+    ResourceLink, Room, Scene, ServiceGroup, SmartScene, Tamper, Taurus, Temperature,
+    ZgpConnectivity, ZigbeeConnectivity, ZigbeeDeviceDiscovery, Zone,
 };
 
 macro_rules! impl_resource_dispatch {
-    ($func:ident) => {
-        impl_resource_dispatch!($func,);
-    };
-
-    ($func:ident, $args:expr) => {
-        match self {
-            Self::AuthV1(obj) => obj.$func($expr),
-            Self::BehaviorInstance(obj) => obj.$func($expr),
-            Self::BehaviorScript(obj) => obj.$func($expr),
-            Self::Bridge(obj) => obj.$func($expr),
-            Self::BridgeHome(obj) => obj.$func($expr),
-            Self::Button(obj) => obj.$func($expr),
-            Self::CameraMotion(obj) => obj.$func($expr),
-            Self::Contact(obj) => obj.$func($expr),
-            Self::Device(obj) => obj.$func($expr),
-            Self::DevicePower(obj) => obj.$func($expr),
-            Self::DeviceSoftwareUpdate(obj) => obj.$func($expr),
-            Self::Entertainment(obj) => obj.$func($expr),
-            Self::EntertainmentConfiguration(obj) => obj.$func($expr),
-            Self::GeofenceClient(obj) => obj.$func($expr),
-            Self::Geolocation(obj) => obj.$func($expr),
-            Self::GroupedLight(obj) => obj.$func($expr),
-            Self::GroupedLightLevel(obj) => obj.$func($expr),
-            Self::GroupedMotion(obj) => obj.$func($expr),
-            Self::Homekit(obj) => obj.$func($expr),
-            Self::Light(obj) => obj.$func($expr),
-            Self::LightLevel(obj) => obj.$func($expr),
-            Self::Matter(obj) => obj.$func($expr),
-            Self::MatterFabric(obj) => obj.$func($expr),
-            Self::Motion(obj) => obj.$func($expr),
-            Self::PrivateGroup(obj) => obj.$func($expr),
-            Self::PublicImage(obj) => obj.$func($expr),
-            Self::RelativeRotary(obj) => obj.$func($expr),
-            Self::Room(obj) => obj.$func($expr),
-            Self::Scene(obj) => obj.$func($expr),
-            Self::ServiceGroup(obj) => obj.$func($expr),
-            Self::SmartScene(obj) => obj.$func($expr),
-            Self::Tamper(obj) => obj.$func($expr),
-            Self::Taurus(obj) => obj.$func($expr),
-            Self::Temperature(obj) => obj.$func($expr),
-            Self::ZgpConnectivity(obj) => obj.$func($expr),
-            Self::ZigbeeConnectivity(obj) => obj.$func($expr),
-            Self::ZigbeeDeviceDiscovery(obj) => obj.$func($expr),
-            Self::Zone(obj) => obj.$func($expr),
+    ($val:expr, $func:ident $(, $args:expr)?) => {
+        match $val {
+            Self::BehaviorInstance(obj) => obj.$func($($args)?),
+            Self::BehaviorScript(obj) => obj.$func($($args)?),
+            Self::Bridge(obj) => obj.$func($($args)?),
+            Self::BridgeHome(obj) => obj.$func($($args)?),
+            Self::Button(obj) => obj.$func($($args)?),
+            Self::CameraMotion(obj) => obj.$func($($args)?),
+            Self::Contact(obj) => obj.$func($($args)?),
+            Self::Device(obj) => obj.$func($($args)?),
+            Self::DevicePower(obj) => obj.$func($($args)?),
+            Self::DeviceSoftwareUpdate(obj) => obj.$func($($args)?),
+            Self::Entertainment(obj) => obj.$func($($args)?),
+            Self::EntertainmentConfiguration(obj) => obj.$func($($args)?),
+            Self::GeofenceClient(obj) => obj.$func($($args)?),
+            Self::Geolocation(obj) => obj.$func($($args)?),
+            Self::GroupedLight(obj) => obj.$func($($args)?),
+            Self::GroupedLightLevel(obj) => obj.$func($($args)?),
+            Self::GroupedMotion(obj) => obj.$func($($args)?),
+            Self::Homekit(obj) => obj.$func($($args)?),
+            Self::Light(obj) => obj.$func($($args)?),
+            Self::LightLevel(obj) => obj.$func($($args)?),
+            Self::Matter(obj) => obj.$func($($args)?),
+            Self::MatterFabric(obj) => obj.$func($($args)?),
+            Self::Motion(obj) => obj.$func($($args)?),
+            Self::PrivateGroup(obj) => obj.$func($($args)?),
+            Self::PublicImage(obj) => obj.$func($($args)?),
+            Self::RelativeRotary(obj) => obj.$func($($args)?),
+            Self::Room(obj) => obj.$func($($args)?),
+            Self::Scene(obj) => obj.$func($($args)?),
+            Self::ServiceGroup(obj) => obj.$func($($args)?),
+            Self::SmartScene(obj) => obj.$func($($args)?),
+            Self::Tamper(obj) => obj.$func($($args)?),
+            Self::Taurus(obj) => obj.$func($($args)?),
+            Self::Temperature(obj) => obj.$func($($args)?),
+            Self::ZgpConnectivity(obj) => obj.$func($($args)?),
+            Self::ZigbeeConnectivity(obj) => obj.$func($($args)?),
+            Self::ZigbeeDeviceDiscovery(obj) => obj.$func($($args)?),
+            Self::Zone(obj) => obj.$func($($args)?),
         }
     };
+}
+
+impl ResourceExt for Resource {
+    fn rtype(&self) -> RType {
+        impl_resource_dispatch!(self, rtype)
+    }
+
+    fn owner(&self) -> Option<ResourceLink> {
+        impl_resource_dispatch!(self, owner)
+    }
+
+    fn delete_link(&mut self, rlink: &ResourceLink) {
+        impl_resource_dispatch!(self, delete_link, rlink);
+    }
 }
 
 pub trait ResourceExt {
