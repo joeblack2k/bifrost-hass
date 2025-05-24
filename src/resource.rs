@@ -164,13 +164,13 @@ impl Resources {
     }
 
     #[must_use]
-    pub fn get_scenes_for_room(&self, id: &Uuid) -> Vec<Uuid> {
+    pub fn get_scenes_for_room(&self, rlink: &ResourceLink) -> HashSet<Uuid> {
         self.state
             .res
             .iter()
             .filter_map(|(k, v)| {
                 if let Resource::Scene(scn) = v {
-                    if &scn.group.rid == id { Some(k) } else { None }
+                    if &scn.group == rlink { Some(k) } else { None }
                 } else {
                     None
                 }

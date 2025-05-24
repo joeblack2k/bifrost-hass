@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use chrono::Utc;
 use maplit::btreeset;
 use serde_json::json;
-use uuid::Uuid;
 
 use hue::api::{
     BridgeHome, Button, ButtonData, ButtonMetadata, ButtonReport, DeviceArchetype,
@@ -279,8 +278,7 @@ impl Z2mBackend {
                 room.metadata.name
             );
 
-            let scenes_old: HashSet<Uuid> =
-                HashSet::from_iter(res.get_scenes_for_room(&link_room.rid));
+            let scenes_old = res.get_scenes_for_room(&link_room);
 
             log::trace!("[{}] old scenes: {scenes_old:?}", self.name);
             log::trace!("[{}] new scenes: {scenes_new:?}", self.name);

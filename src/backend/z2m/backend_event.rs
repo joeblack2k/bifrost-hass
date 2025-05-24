@@ -187,7 +187,7 @@ impl Z2mBackend {
 
         if let Some(recall) = &upd.recall {
             if recall.action == Some(SceneStatusEnum::Active) {
-                let scenes = lock.get_scenes_for_room(&scene.group.rid);
+                let scenes = lock.get_scenes_for_room(&scene.group);
                 for rid in scenes {
                     lock.update::<Scene>(&rid, |scn| {
                         scn.status = Some(SceneStatus {
