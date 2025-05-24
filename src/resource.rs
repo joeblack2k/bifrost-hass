@@ -119,7 +119,7 @@ impl Resources {
         func(obj)?;
         let after = serde_json::to_value(&obj)?;
 
-        // if the function affected a meaningful difference, send an update event
+        // if the function effected a meaningful difference, send an update event
         if let Some(delta) = hue::diff::event_update_diff(before, after)? {
             log::trace!("Hue event: {id_v1:?} {delta:#?}");
             self.hue_event_stream.hue_event(EventBlock::update(
