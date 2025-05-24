@@ -312,6 +312,11 @@ impl LightGradientPoint {
             color: ColorUpdate { xy },
         }
     }
+
+    #[must_use]
+    pub const fn color(&self) -> XY {
+        self.color.xy
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
