@@ -222,11 +222,8 @@ impl Resources {
         // Remove resource from state database
         self.state.remove(&link.rid)?;
 
-        // Find ids of all resources owned by the deleted node
-        let owned_by = self.state.all_owned_resources(link);
-
         // Delete all resources owned by the deleted node
-        for owned in owned_by {
+        for owned in self.state.all_owned_resources(link) {
             self.delete(&owned)?;
         }
 
