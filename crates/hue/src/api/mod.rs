@@ -44,10 +44,11 @@ pub use scene::{
 pub use stream::HueStreamKey;
 pub use stubs::{
     BehaviorInstance, BehaviorInstanceMetadata, BehaviorScript, Bridge, BridgeHome, Button,
-    ButtonData, ButtonMetadata, ButtonReport, DevicePower, DeviceSoftwareUpdate, DollarRef,
-    GeofenceClient, Geolocation, GroupedLightLevel, GroupedMotion, Homekit, LightLevel, Matter,
-    Metadata, MetadataUpdate, Motion, PrivateGroup, PublicImage, RelativeRotary, SmartScene,
-    Taurus, Temperature, TimeZone, ZigbeeConnectivity, ZigbeeConnectivityStatus, Zone,
+    ButtonData, ButtonMetadata, ButtonReport, CameraMotion, Contact, DevicePower,
+    DeviceSoftwareUpdate, DollarRef, GeofenceClient, Geolocation, GroupedLightLevel, GroupedMotion,
+    Homekit, LightLevel, Matter, MatterFabric, Metadata, MetadataUpdate, Motion, PrivateGroup,
+    PublicImage, RelativeRotary, ServiceGroup, SmartScene, Tamper, Taurus, Temperature, TimeZone,
+    ZgpConnectivity, ZigbeeConnectivity, ZigbeeConnectivityStatus, Zone,
 };
 pub use update::Update;
 pub use zigbee_device_discovery::{

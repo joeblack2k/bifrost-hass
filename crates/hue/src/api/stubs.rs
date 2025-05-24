@@ -293,3 +293,39 @@ pub struct MetadataUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub function: Option<LightFunction>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct CameraMotion {
+    #[serde(flatten)]
+    pub value: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Contact {
+    #[serde(flatten)]
+    pub value: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct MatterFabric {
+    #[serde(flatten)]
+    pub value: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct ServiceGroup {
+    #[serde(flatten)]
+    pub value: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Tamper {
+    #[serde(flatten)]
+    pub value: Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct ZgpConnectivity {
+    #[serde(flatten)]
+    pub value: Value,
+}
