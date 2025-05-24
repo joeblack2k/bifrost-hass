@@ -243,12 +243,7 @@ impl Z2mBackend {
                     image: guess_scene_icon(&scn.name),
                     name: scn.name.to_string(),
                 },
-                palette: json!({
-                    "color": [],
-                    "dimming": [],
-                    "color_temperature": [],
-                    "effects": [],
-                }),
+                palette: None,
                 speed: 0.5,
                 recall: SceneRecall {
                     action: None,

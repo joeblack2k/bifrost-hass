@@ -4,13 +4,16 @@ use std::sync::Arc;
 
 use camino::Utf8Path;
 use chrono::Utc;
-use tokio::sync::Mutex;
+use tokio::sync::watch::Sender;
+use tokio::sync::{Mutex, broadcast, watch};
 
+use bifrost_api::logging::LogRecord;
 use hue::legacy_api::{ApiConfig, ApiShortConfig, Whitelist};
 use svc::manager::SvmClient;
 
 use crate::config::AppConfig;
 use crate::error::ApiResult;
+use crate::logging::LogHistory;
 use crate::model::state::{State, StateVersion};
 use crate::resource::Resources;
 use crate::server::certificate;
@@ -18,14 +21,19 @@ use crate::server::updater::VersionUpdater;
 
 #[derive(Clone)]
 pub struct AppState {
-    conf: Arc<AppConfig>,
+    conf: Sender<AppConfig>,
     upd: Arc<Mutex<VersionUpdater>>,
     svm: SvmClient,
+    pub log: Arc<LogHistory>,
     pub res: Arc<Mutex<Resources>>,
 }
 
 impl AppState {
-    pub async fn from_config(config: AppConfig, svm: SvmClient) -> ApiResult<Self> {
+    pub async fn from_config(
+        config: AppConfig,
+        svm: SvmClient,
+        log: LogHistory,
+    ) -> ApiResult<Self> {
         let certfile = &config.bifrost.cert_file;
 
         let certpath = Utf8Path::new(certfile);
@@ -65,20 +73,39 @@ impl AppState {
 
         res.reset_all_streaming()?;
 
-        let conf = Arc::new(config);
         let res = Arc::new(Mutex::new(res));
+
+        let conf = Sender::new(config);
+
+        let log = Arc::new(log);
 
         Ok(Self {
             conf,
             upd,
             svm,
+            log,
             res,
         })
     }
 
     #[must_use]
     pub fn config(&self) -> Arc<AppConfig> {
-        self.conf.clone()
+        Arc::new(self.conf.borrow().clone())
+    }
+
+    #[must_use]
+    pub fn logger(&self) -> broadcast::Receiver<LogRecord> {
+        self.log.subscribe()
+    }
+
+    #[must_use]
+    pub fn config_subscribe(&self) -> watch::Receiver<AppConfig> {
+        self.conf.subscribe()
+    }
+
+    #[allow(clippy::must_use_candidate)]
+    pub fn replace_config(&self, config: AppConfig) -> AppConfig {
+        self.conf.send_replace(config)
     }
 
     #[must_use]
@@ -93,20 +120,21 @@ impl AppState {
 
     #[must_use]
     pub async fn api_short_config(&self) -> ApiShortConfig {
-        let mac = self.conf.bridge.mac;
+        let mac = self.conf.borrow().bridge.mac;
         ApiShortConfig::from_mac_and_version(mac, self.upd.lock().await.get().await)
     }
 
     pub async fn api_config(&self, username: String) -> ApiResult<ApiConfig> {
-        let tz = tzfile::Tz::named(&self.conf.bridge.timezone)?;
+        let conf = self.config();
+        let tz = tzfile::Tz::named(&conf.bridge.timezone)?;
         let localtime = Utc::now().with_timezone(&&tz).naive_local();
 
         let res = ApiConfig {
             short_config: self.api_short_config().await,
-            ipaddress: self.conf.bridge.ipaddress,
-            netmask: self.conf.bridge.netmask,
-            gateway: self.conf.bridge.gateway,
-            timezone: self.conf.bridge.timezone.clone(),
+            ipaddress: conf.bridge.ipaddress,
+            netmask: conf.bridge.netmask,
+            gateway: conf.bridge.gateway,
+            timezone: conf.bridge.timezone.clone(),
             whitelist: HashMap::from([(
                 username,
                 Whitelist {

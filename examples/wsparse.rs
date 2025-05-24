@@ -21,7 +21,7 @@ async fn main() -> ApiResult<()> {
         let raw_data = serde_json::from_str::<RawMessage>(&line);
 
         let Ok(raw_msg) = raw_data else {
-            log::error!("INVALID LINE: {:#?}", raw_data);
+            log::error!("INVALID LINE: {raw_data:#?}");
             continue;
         };
 
@@ -31,7 +31,7 @@ async fn main() -> ApiResult<()> {
             let data = serde_json::from_str(&line);
 
             let Ok(msg) = data else {
-                log::error!("INVALID LINE [bridge]: {:#?}", data);
+                log::error!("INVALID LINE [bridge]: {data:#?}");
                 continue;
             };
 

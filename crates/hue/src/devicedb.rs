@@ -59,6 +59,7 @@ fn make_product_data() -> BTreeMap<&'static str, SimpleProductData<'static>> {
         "LCT015" => SPD::signify("Hue color lamp", SultanBulb, "100b-10c"),
         "LCT016" => SPD::signify("Hue color lamp", SultanBulb, "100b-10c"),
         "LCX001" => SPD::signify("Hue play gradient lightstrip", HueLightstripTv, "100b-118"),
+        "LCX002" => SPD::signify("Hue play gradient lightstrip", HueLightstripTv, "100b-118"),
         "LCX005" => SPD::signify("Hue play gradient lightstrip", HueLightstripPc, "100b-118"),
         "LLC020" => SPD::signify("Hue go", HueGo, "100b-108"),
         "LOM001" => SPD::signify("Hue Smart plug", Plug, "100b-115"),

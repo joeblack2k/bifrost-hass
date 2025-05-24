@@ -60,7 +60,7 @@ impl Resources {
         for id in self.get_resource_ids_by_type(RType::Light) {
             let light: &Light = self.get_id(id)?;
             if light.is_streaming() {
-                log::warn!("Clearing streaming state of Light {}", id);
+                log::warn!("Clearing streaming state of Light {id}");
                 self.update(&id, Light::stop_streaming)?;
             }
         }
@@ -316,7 +316,7 @@ impl Resources {
             }),
             dimming: Some(DimmingUpdate { brightness: 8.7 }),
             color: Some(Stub),
-            color_temperature: Some(Stub),
+            color_temperature: None,
             color_temperature_delta: Some(Stub),
             dimming_delta: Stub,
             dynamics: Stub,

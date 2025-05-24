@@ -38,7 +38,8 @@ pub use light::{
 pub use resource::{RType, ResourceLink, ResourceRecord};
 pub use room::{Room, RoomArchetype, RoomMetadata, RoomMetadataUpdate, RoomUpdate};
 pub use scene::{
-    Scene, SceneAction, SceneActionElement, SceneActive, SceneMetadata, SceneRecall, SceneStatus,
+    Scene, SceneAction, SceneActionElement, SceneActive, SceneMetadata, SceneMetadataUpdate,
+    ScenePalette, ScenePaletteColor, ScenePaletteColorTemperature, SceneRecall, SceneStatus,
     SceneStatusEnum, SceneUpdate,
 };
 use serde::ser::SerializeMap;
@@ -60,14 +61,28 @@ pub use zigbee_device_discovery::{
 use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, from_value, json};
+use serde_json::{Map, Value, from_value, json};
 
 use crate::error::{HueError, HueResult};
 use crate::legacy_api::ApiLightStateUpdate;
 
-#[derive(Debug, Deserialize, Clone, Default, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Stub;
+
+impl<'de> Deserialize<'de> for Stub {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let map = Map::deserialize(deserializer)?;
+        if map.is_empty() {
+            Ok(Self)
+        } else {
+            Err(D::Error::custom("Expected empty map"))
+        }
+    }
+}
 
 impl Serialize for Stub {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
