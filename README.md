@@ -3,7 +3,7 @@
 # Bifrost Bridge
 
 Bifrost enables you to emulate a Philips Hue Bridge to control lights, groups
-and scenes from [Zigbee2Mqtt](https://www.zigbee2mqtt.io/).
+and scenes from [Zigbee2Mqtt](https://www.zigbee2mqtt.io/) or [WLED](https://kno.wled.ge/).
 
 If you are already familiar with [DiyHue](https://github.com/diyhue/diyHue), you
 might like to read the [comparison with DiyHue](doc/comparison-with-diyhue.md).
@@ -27,7 +27,7 @@ There are currently three ways you can install Bifrost:
 To install Bifrost from source, you will need the following:
 
 1.  The rust language toolchain (https://rustup.rs/)
-2.  At least one zigbee2mqtt server to connect to
+2.  At least one Zigbee2MQTT server or WLED instance to connect to
 3.  The MAC address of the network interface you want to run the server on
 4.  `build-essential` package for compiling the source code (on Debian/Ubuntu systems)
 
@@ -125,7 +125,7 @@ The Philips Hue app should be able to find it on your network!
 
 To install Bifrost with Docker, you will need the following:
 
-1.  At least one zigbee2mqtt server to connect to
+1.  At least one Zigbee2MQTT server or WLED instance to connect to
 2.  The MAC address of the network interface you want to run the server on
 3.  A running [Docker](https://docs.docker.com/engine/install/) instance
     with [Docker-Compose](https://docs.docker.com/compose/install/) installed
