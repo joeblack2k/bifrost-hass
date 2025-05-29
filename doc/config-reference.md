@@ -51,7 +51,7 @@ bridge:
   # For advanced users (e.g. bifrost behind a port forwarded firewall)
   entm_port: 2100
 
-# Zigbee2mqtt section
+# Zigbee2mqtt section (optional!)
 #
 # Make a sub-section for each Zigbee2MQTT server you want to connect to.
 #
@@ -143,6 +143,36 @@ z2m:
     # - Even values as low as 5 fps looks pretty good.
     # - There usually no reason to go above 60.
     # - Have fun experimenting :-)
+    streaming_fps: 20
+  ...
+
+# WLED section (optional!)
+#
+# Make a sub-section for each WLED instance you want to connect to.
+#
+# The server names ("led-strip", etc) are used for logging,
+# but have no functional impact.
+#
+# NOTE: Be sure to use DIFFERENT names for different servers.
+# Otherwise the yaml parser will consider it the same server!
+wled:
+  led-strip:
+    # The websocket url for wled:
+    #
+    # Should start with `ws://`
+    # Should end with `/ws`
+    #
+    # Example:
+    #
+    #   If your wled instance is listening on 10.00.0.200, this
+    #   is the resulting url:
+    #
+    url: ws://10.0.0.200/ws
+
+    # Streaming mode ("Entertainment mode" / "Hue Sync") maximum frames per second
+    # [optional!]
+    #
+    # Currently parsed but ignored WLED backend.
     streaming_fps: 20
   ...
 
