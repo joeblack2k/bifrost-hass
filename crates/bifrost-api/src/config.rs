@@ -46,6 +46,18 @@ pub struct Z2mServer {
     pub streaming_fps: Option<NonZeroU32>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+pub struct WledConfig {
+    #[serde(flatten)]
+    pub servers: BTreeMap<String, WledServer>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+pub struct WledServer {
+    pub url: Url,
+    pub streaming_fps: Option<NonZeroU32>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, Default, Eq, PartialEq)]
 pub struct RoomConfig {
     pub name: Option<String>,
@@ -56,6 +68,7 @@ pub struct RoomConfig {
 pub struct AppConfig {
     pub bridge: BridgeConfig,
     pub z2m: Z2mConfig,
+    pub wled: WledConfig,
     pub bifrost: BifrostConfig,
     #[serde(default)]
     pub rooms: BTreeMap<String, RoomConfig>,
