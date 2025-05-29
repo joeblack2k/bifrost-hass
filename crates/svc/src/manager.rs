@@ -144,6 +144,19 @@ impl SvmClient {
         self.rpc(SvmRequest::Start, id.service_id()).await?
     }
 
+    pub async fn start_instances(
+        &mut self,
+        base: &str,
+        ids: impl Iterator<Item = impl ToString>,
+    ) -> SvcResult<Vec<Uuid>> {
+        let mut res = vec![];
+        for id in ids {
+            let instance = ServiceId::instance(base, id.to_string());
+            res.push(self.rpc(SvmRequest::Start, instance).await??);
+        }
+        Ok(res)
+    }
+
     pub async fn stop(&mut self, id: impl IntoServiceId) -> SvcResult<Uuid> {
         self.rpc(SvmRequest::Stop, id.service_id()).await?
     }
