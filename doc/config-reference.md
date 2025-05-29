@@ -53,7 +53,7 @@ bridge:
 
 # Zigbee2mqtt section
 #
-# Make a sub-section for each zigbee2mqtt server you want to connect
+# Make a sub-section for each Zigbee2MQTT server you want to connect to.
 #
 # The server names ("some-server", "other-with-tls") are used for logging,
 # but have no functional impact.
@@ -76,7 +76,7 @@ z2m:
     # Example:
     #
     #   If your z2m frontend is listening on 10.00.0.100:8080, this
-    #   is the resuling config:
+    #   is the resulting url:
     #
     url: ws://10.00.0.100:8080/api?token=your-secret-token
 
