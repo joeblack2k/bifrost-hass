@@ -9,7 +9,6 @@ use bifrost::server::mdns::MdnsService;
 use bifrost::server::{self, Protocol};
 use svc::manager::ServiceManager;
 use svc::manager::SvmClient;
-use svc::serviceid::ServiceId;
 use tokio::signal;
 use tokio::signal::unix::SignalKind;
 
@@ -115,14 +114,20 @@ async fn build_tasks(appstate: &AppState) -> ApiResult<()> {
     )?;
     mgr.register_service("entertainment", svc).await?;
 
-    // register all z2m backends as services
+    // register template for all z2m backends
     let template = backend::z2m::Z2mServiceTemplate::new(appstate.clone());
     mgr.register_template("z2m", template).await?;
 
-    // start named z2m instances, since templated services appear when started
-    for name in appstate.config().z2m.servers.keys() {
-        mgr.start(ServiceId::instance("z2m", name)).await?;
-    }
+    // register template for all wled backends
+    let template = backend::wled::WledServiceTemplate::new(appstate.clone());
+    mgr.register_template("wled", template).await?;
+
+    // start named instances, since templated services appear when started
+    let config = appstate.config();
+    mgr.start_instances("z2m", config.z2m.servers.keys())
+        .await?;
+    mgr.start_instances("wled", config.wled.servers.keys())
+        .await?;
 
     // finally, iterate over all services and start them
     for (id, _name) in mgr.list().await? {
