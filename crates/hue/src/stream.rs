@@ -194,6 +194,19 @@ impl HueStreamLightsV1 {
 }
 
 impl HueStreamLightsV2 {
+    #[must_use]
+    pub fn len(&self) -> usize {
+        match self {
+            Self::Rgb(rgb16_v2s) => rgb16_v2s.len(),
+            Self::Xy(xy16_v2s) => xy16_v2s.len(),
+        }
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn parse(color_mode: HueStreamColorMode, data: &[u8]) -> HueResult<Self> {
         match color_mode {
             HueStreamColorMode::Rgb => Ok(Self::Rgb(parse_list(data)?)),
