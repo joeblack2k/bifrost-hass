@@ -295,8 +295,6 @@ impl WledBackend {
         wledws: &mut WledWebSocket,
         req: Arc<BackendRequest>,
     ) -> ApiResult<()> {
-        /* self.learner.cleanup(); */
-
         match &*req {
             BackendRequest::LightUpdate(link, upd) => {
                 self.backend_light_update(wledws, link, upd).await

@@ -129,8 +129,6 @@ impl WledBackend {
 
         let mut light = Light::new(link_device, metadata);
 
-        /* let features = info.leds.as_ref().and_then(|leds| leds.lc).unwrap_or(0); */
-
         light.dimming = Some(Dimming {
             brightness: f64::from(state.bri) / 2.55,
             min_dim_level: Some(1.0 / 255.0),
