@@ -30,13 +30,13 @@
 /* } */
 
 pub mod option_ipaddr_or_empty {
-    use std::net::IpAddr;
+    use std::net::Ipv4Addr;
 
     use serde::de::Error;
     use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-    #[allow(clippy::ref_option)]
-    pub fn serialize<S>(v: &Option<IpAddr>, serializer: S) -> Result<S::Ok, S::Error>
+    #[allow(clippy::trivially_copy_pass_by_ref, clippy::ref_option)]
+    pub fn serialize<S>(v: &Option<Ipv4Addr>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -46,7 +46,7 @@ pub mod option_ipaddr_or_empty {
         }
     }
 
-    pub fn deserialize<'de, D>(d: D) -> Result<Option<IpAddr>, D::Error>
+    pub fn deserialize<'de, D>(d: D) -> Result<Option<Ipv4Addr>, D::Error>
     where
         D: Deserializer<'de>,
     {

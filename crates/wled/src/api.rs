@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize, ser::SerializeSeq};
 use serde_json::Value;
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::net::IpAddr;
+use std::net::Ipv4Addr;
 
 use crate::serde_util::{bool_as_int, option_ipaddr_or_empty};
 use crate::types::{OptFlags, SegCap};
@@ -57,7 +57,7 @@ pub struct WledInfo {
     ///
     /// `None` when not streaming.
     #[serde(with = "option_ipaddr_or_empty")]
-    pub lip: Option<IpAddr>,
+    pub lip: Option<Ipv4Addr>,
 
     /// Number of currently connected websocket clients. -1 indicates that WS is unsupported in this build.
     ///
@@ -122,7 +122,7 @@ pub struct WledInfo {
 
     /// The IP address of this instance. Empty string if not connected. (since 0.13.0)
     #[serde(with = "option_ipaddr_or_empty")]
-    pub ip: Option<IpAddr>,
+    pub ip: Option<Ipv4Addr>,
 
     /// Usermod values
     #[serde(default)]
