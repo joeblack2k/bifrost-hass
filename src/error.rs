@@ -40,6 +40,9 @@ pub enum ApiError {
     FromHexError(#[from] hex::FromHexError),
 
     #[error(transparent)]
+    PackedStructError(#[from] packed_struct::PackingError),
+
+    #[error(transparent)]
     UrlParseError(#[from] url::ParseError),
 
     #[error(transparent)]
