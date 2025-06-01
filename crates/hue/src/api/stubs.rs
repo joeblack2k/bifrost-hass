@@ -239,6 +239,19 @@ pub struct ZigbeeConnectivity {
     pub status: ZigbeeConnectivityStatus,
 }
 
+impl ZigbeeConnectivity {
+    #[must_use]
+    pub const fn from_owner_and_mac(owner: ResourceLink, mac_address: String) -> Self {
+        Self {
+            channel: None,
+            extended_pan_id: None,
+            mac_address,
+            owner,
+            status: ZigbeeConnectivityStatus::Connected,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Zone {
     pub metadata: Metadata,
