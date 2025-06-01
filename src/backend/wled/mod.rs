@@ -26,8 +26,10 @@ use svc::template::ServiceTemplate;
 use svc::traits::{BoxDynService, Service};
 use wled::{WledFrame, WledInfo};
 
+use crate::backend::wled::entertainment::EntStream;
 use crate::backend::wled::websocket::WledWebSocket;
 use crate::error::{ApiError, ApiResult};
+use crate::model::throttle::Throttle;
 use crate::resource::Resources;
 use crate::server::appstate::AppState;
 
@@ -66,15 +68,21 @@ pub struct WledBackend {
     server: WledServer,
     state: Arc<Mutex<Resources>>,
     info: Option<WledInfo>,
+    fps: u32,
     room: Option<ResourceLink>,
     glight: Option<ResourceLink>,
     map: HashMap<u8, ResourceLink>,
     rmap: HashMap<ResourceLink, u8>,
+    throttle: Throttle,
+    entstream: Option<EntStream>,
     socket: Option<WledWebSocket>,
 }
 
 impl WledBackend {
+    const DEFAULT_FPS: u32 = 20;
+
     pub fn new(name: String, server: WledServer, state: Arc<Mutex<Resources>>) -> ApiResult<Self> {
+        let fps = server.streaming_fps.map_or(Self::DEFAULT_FPS, u32::from);
         let map = HashMap::new();
         let rmap = HashMap::new();
         Ok(Self {
@@ -83,9 +91,12 @@ impl WledBackend {
             state,
             map,
             rmap,
+            fps,
             room: None,
             glight: None,
             info: None,
+            entstream: None,
+            throttle: Throttle::from_fps(fps),
             socket: None,
         })
     }
