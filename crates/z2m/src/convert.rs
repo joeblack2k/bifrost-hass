@@ -22,8 +22,8 @@ impl ExtractExposeNumeric for ExposeNumeric {
         if self.unit.as_deref() == Some("mired") {
             if let (Some(min), Some(max)) = (self.value_min, self.value_max) {
                 return Some(MirekSchema {
-                    mirek_minimum: min as u32,
-                    mirek_maximum: max as u32,
+                    mirek_minimum: min as u16,
+                    mirek_maximum: max as u16,
                 });
             }
         }

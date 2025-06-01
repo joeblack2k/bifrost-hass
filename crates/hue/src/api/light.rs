@@ -860,8 +860,8 @@ impl LightColor {
 
 #[derive(Copy, Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct MirekSchema {
-    pub mirek_minimum: u32,
-    pub mirek_maximum: u32,
+    pub mirek_minimum: u16,
+    pub mirek_maximum: u16,
 }
 
 impl MirekSchema {
