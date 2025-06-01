@@ -40,6 +40,16 @@ pub const fn hue_effect_to_wled(effect: LightEffect) -> Option<u8> {
     }
 }
 
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+pub fn wled_color_temperature(schema: MirekSchema, mirek: u16) -> u16 {
+    let range = schema.mirek_maximum - schema.mirek_minimum;
+    let offset = mirek - schema.mirek_minimum;
+
+    let res = f64::from(offset) / f64::from(range) * f64::from(0xFF);
+
+    res.round().clamp(0.0, 255.0) as u16
+}
+
 impl WledBackend {
     async fn backend_light_update(
         &self,
@@ -78,10 +88,16 @@ impl WledBackend {
             if let Some(speed) = &act.parameters.speed {
                 state.sx = Some(speed.unit_to_u8_clamped());
             }
-            /* if let Some(mirek) = act.parameters.color_temperature_mirek() { */
-            /*     state.cct = mirek; */
-            /* } */
-            if let Some(color) = &dbg!(act.parameters.color) {
+            if let Some(mirek) = act.parameters.color_temperature_mirek() {
+                let lock = self.state.lock().await;
+                let light: &Light = lock.get(link)?;
+
+                if let Some(ct) = &light.color_temperature {
+                    state.cct = Some(wled_color_temperature(ct.mirek_schema, mirek));
+                }
+                drop(lock);
+            }
+            if let Some(color) = &act.parameters.color {
                 let [r, g, b] = color.xy.to_rgb(255.0);
                 state.col = Some(Colors {
                     primary: Color::Rgb([r, g, b]),
