@@ -126,13 +126,8 @@ impl Z2mBackend {
             owner: link_device,
         };
 
-        let zigcon = ZigbeeConnectivity {
-            channel: None,
-            extended_pan_id: None,
-            mac_address: apidev.ieee_address.to_string(),
-            owner: link_device,
-            status: ZigbeeConnectivityStatus::Connected,
-        };
+        let zigcon =
+            ZigbeeConnectivity::from_owner_and_mac(link_device, apidev.ieee_address.to_string());
 
         let mut res = self.state.lock().await;
         res.aux_set(&link_light, AuxData::new().with_topic(name));
