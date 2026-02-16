@@ -12,7 +12,7 @@ use tokio::sync::MutexGuard;
 
 use bifrost_api::backend::BackendRequest;
 use hue::api::{
-    Device, Entertainment, EntertainmentConfiguration, EntertainmentConfigurationAction,
+    Device, DeviceArchetype, Entertainment, EntertainmentConfiguration, EntertainmentConfigurationAction,
     EntertainmentConfigurationLocationsNew, EntertainmentConfigurationMetadata,
     EntertainmentConfigurationNew, EntertainmentConfigurationServiceLocationsNew,
     EntertainmentConfigurationType, EntertainmentConfigurationUpdate, GroupedLight,
@@ -89,6 +89,12 @@ fn get_groups(res: &MutexGuard<Resources>, group_0: bool) -> ApiResult<HashMap<S
             .children
             .iter()
             .filter_map(|rl| res.get(rl).ok())
+            .filter(|dev: &Device| {
+                !matches!(
+                    dev.product_data.product_archetype,
+                    DeviceArchetype::Plug
+                ) && !matches!(dev.metadata.archetype, DeviceArchetype::Plug)
+            })
             .filter_map(Device::light_service)
             .filter_map(|rl| res.get_id_v1(rl.rid).ok())
             .collect();

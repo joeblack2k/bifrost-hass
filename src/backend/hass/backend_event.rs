@@ -212,8 +212,13 @@ impl HassBackend {
                 room.children
                     .iter()
                     .filter_map(|device| self.lookup_binding_by_device(device))
-                    .filter(|binding| {
-                        matches!(binding.kind, HassEntityKind::Light | HassEntityKind::Switch)
+                    .filter(|binding| match binding.kind {
+                        HassEntityKind::Light => true,
+                        HassEntityKind::Switch => {
+                            binding.switch_mode.unwrap_or(HassSwitchMode::Plug)
+                                == HassSwitchMode::Light
+                        }
+                        HassEntityKind::BinarySensor => false,
                     })
                     .map(|binding| binding.entity_id)
                     .collect::<Vec<_>>()
@@ -261,6 +266,11 @@ impl HassBackend {
 
         for action in scene_actions {
             if let Some(binding) = self.lookup_binding_by_light(&action.target) {
+                if matches!(binding.kind, HassEntityKind::Switch)
+                    && binding.switch_mode.unwrap_or(HassSwitchMode::Plug) != HassSwitchMode::Light
+                {
+                    continue;
+                }
                 let upd = LightUpdate {
                     on: action.action.on,
                     dimming: action.action.dimming,
