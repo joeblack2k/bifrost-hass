@@ -1,6 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import type { HassEntitySummary, HassRoomConfig, HassSensorKind, HassSwitchMode } from '../lib/types'
+import type {
+  HassEntitySummary,
+  HassLightArchetype,
+  HassRoomConfig,
+  HassSensorKind,
+  HassSwitchMode,
+} from '../lib/types'
 import { EntityRow } from '../components/EntityRow'
 
 function norm(s: string) {
@@ -19,6 +25,7 @@ export function EntitiesPage(props: {
   onSetSensorKind: (entity: HassEntitySummary, kind: HassSensorKind) => void
   onSetSensorEnabled: (entity: HassEntitySummary, enabled: boolean) => void
   onSetSwitchMode: (entity: HassEntitySummary, mode: HassSwitchMode) => void
+  onSetLightArchetype: (entity: HassEntitySummary, archetype: HassLightArchetype) => void
 }) {
   const [q, setQ] = useState('')
 
@@ -109,6 +116,7 @@ export function EntitiesPage(props: {
                   onSetSensorKind={props.onSetSensorKind}
                   onSetSensorEnabled={props.onSetSensorEnabled}
                   onSetSwitchMode={props.onSetSwitchMode}
+                  onSetLightArchetype={props.onSetLightArchetype}
                 />
               </div>
             )

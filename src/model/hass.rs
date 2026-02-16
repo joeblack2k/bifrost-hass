@@ -23,6 +23,35 @@ pub enum HassSwitchMode {
     Light,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum HassLightArchetype {
+    #[default]
+    ClassicBulb,
+    SultanBulb,
+    CandleBulb,
+    SpotBulb,
+    VintageBulb,
+    FloodBulb,
+    CeilingRound,
+    CeilingSquare,
+    PendantRound,
+    PendantLong,
+    FloorShade,
+    FloorLantern,
+    TableShade,
+    WallSpot,
+    WallLantern,
+    RecessedCeiling,
+    HueLightstrip,
+    HuePlay,
+    HueGo,
+    HueBloom,
+    HueIris,
+    HueSigne,
+    HueTube,
+}
+
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum HassFakeCloudMode {
@@ -120,6 +149,8 @@ pub struct HassEntityPreference {
     pub sensor_enabled: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub switch_mode: Option<HassSwitchMode>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub light_archetype: Option<HassLightArchetype>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
@@ -332,6 +363,7 @@ impl HassUiConfig {
                 || pref.sensor_kind.is_some()
                 || pref.sensor_enabled.is_some()
                 || pref.switch_mode.is_some()
+                || pref.light_archetype.is_some()
         });
     }
 
@@ -414,6 +446,19 @@ impl HassUiConfig {
         self.normalize();
     }
 
+    pub fn set_entity_light_archetype(
+        &mut self,
+        entity_id: &str,
+        light_archetype: Option<HassLightArchetype>,
+    ) {
+        let pref = self
+            .entity_preferences
+            .entry(entity_id.to_string())
+            .or_default();
+        pref.light_archetype = light_archetype;
+        self.normalize();
+    }
+
     #[must_use]
     pub fn entity_alias(&self, entity_id: &str) -> Option<String> {
         self.entity_preferences
@@ -444,6 +489,14 @@ impl HassUiConfig {
             .get(entity_id)
             .and_then(|x| x.switch_mode)
             .unwrap_or(HassSwitchMode::Plug)
+    }
+
+    #[must_use]
+    pub fn light_archetype(&self, entity_id: &str) -> HassLightArchetype {
+        self.entity_preferences
+            .get(entity_id)
+            .and_then(|x| x.light_archetype)
+            .unwrap_or(HassLightArchetype::ClassicBulb)
     }
 
     pub fn room_for_area(&self, area_name: &str) -> Option<String> {
@@ -607,6 +660,8 @@ pub struct HassEntitySummary {
     pub switch_mode: Option<HassSwitchMode>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sensor_kind: Option<HassSensorKind>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub light_archetype: Option<HassLightArchetype>,
     #[serde(default)]
     pub enabled: bool,
 }
@@ -1071,6 +1126,15 @@ impl HassUiState {
         self.config.set_entity_switch_mode(entity_id, switch_mode);
     }
 
+    pub fn set_entity_light_archetype(
+        &mut self,
+        entity_id: &str,
+        light_archetype: Option<HassLightArchetype>,
+    ) {
+        self.config
+            .set_entity_light_archetype(entity_id, light_archetype);
+    }
+
     pub fn visible_logs(&self) -> Vec<String> {
         self.logs.iter().rev().cloned().collect()
     }
@@ -1152,6 +1216,8 @@ pub struct HassEntityPatchRequest {
     pub enabled: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub switch_mode: Option<HassSwitchMode>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub light_archetype: Option<HassLightArchetype>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]

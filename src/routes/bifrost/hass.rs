@@ -163,6 +163,10 @@ async fn patch_entity(
         lock.set_entity_switch_mode(&req.entity_id, Some(mode));
         trigger_upsert = true;
     }
+    if let Some(archetype) = req.light_archetype {
+        lock.set_entity_light_archetype(&req.entity_id, Some(archetype));
+        trigger_upsert = true;
+    }
 
     lock.persist_and_log(&format!("Updated entity {}", req.entity_id))?;
     let cfg = lock.config_normalized();
@@ -194,6 +198,9 @@ async fn patch_entity(
             if matches!(selected, HassSensorKind::Ignore) {
                 included = false;
             }
+            summary.light_archetype = None;
+        } else if summary.domain == "light" {
+            summary.light_archetype = Some(cfg.light_archetype(&summary.entity_id));
         } else if summary.domain == "switch" {
             let mode = cfg.switch_mode(&summary.entity_id);
             summary.switch_mode = Some(mode);
@@ -201,6 +208,11 @@ async fn patch_entity(
                 "light".to_string()
             } else {
                 "switch".to_string()
+            };
+            summary.light_archetype = if mode == HassSwitchMode::Light {
+                Some(cfg.light_archetype(&summary.entity_id))
+            } else {
+                None
             };
         }
         summary.included = included;

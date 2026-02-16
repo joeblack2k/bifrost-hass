@@ -19,7 +19,9 @@ use crate::backend::hass::{
     HassBackend, HassEntityBinding, HassEntityKind, HassLightCapabilities, HassServiceKind,
 };
 use crate::error::ApiResult;
-use crate::model::hass::{HassEntitySummary, HassSensorKind, HassSwitchMode, HassUiConfig};
+use crate::model::hass::{
+    HassEntitySummary, HassLightArchetype, HassSensorKind, HassSwitchMode, HassUiConfig,
+};
 use crate::resource::Resources;
 
 #[derive(Clone, Debug)]
@@ -39,6 +41,7 @@ struct ImportedEntity {
     detected_sensor_kind: Option<HassSensorKind>,
     sensor_enabled: bool,
     switch_mode: Option<HassSwitchMode>,
+    light_archetype: Option<HassLightArchetype>,
 }
 
 impl ImportedEntity {
@@ -238,15 +241,52 @@ fn parse_imported_entity(state: &HassState, area_name: Option<String>) -> Option
         } else {
             None
         },
+        light_archetype: None,
     })
+}
+
+fn device_archetype(archetype: HassLightArchetype) -> DeviceArchetype {
+    match archetype {
+        HassLightArchetype::ClassicBulb => DeviceArchetype::ClassicBulb,
+        HassLightArchetype::SultanBulb => DeviceArchetype::SultanBulb,
+        HassLightArchetype::CandleBulb => DeviceArchetype::CandleBulb,
+        HassLightArchetype::SpotBulb => DeviceArchetype::SpotBulb,
+        HassLightArchetype::VintageBulb => DeviceArchetype::VintageBulb,
+        HassLightArchetype::FloodBulb => DeviceArchetype::FloodBulb,
+        HassLightArchetype::CeilingRound => DeviceArchetype::CeilingRound,
+        HassLightArchetype::CeilingSquare => DeviceArchetype::CeilingSquare,
+        HassLightArchetype::PendantRound => DeviceArchetype::PendantRound,
+        HassLightArchetype::PendantLong => DeviceArchetype::PendantLong,
+        HassLightArchetype::FloorShade => DeviceArchetype::FloorShade,
+        HassLightArchetype::FloorLantern => DeviceArchetype::FloorLantern,
+        HassLightArchetype::TableShade => DeviceArchetype::TableShade,
+        HassLightArchetype::WallSpot => DeviceArchetype::WallSpot,
+        HassLightArchetype::WallLantern => DeviceArchetype::WallLantern,
+        HassLightArchetype::RecessedCeiling => DeviceArchetype::RecessedCeiling,
+        HassLightArchetype::HueLightstrip => DeviceArchetype::HueLightstrip,
+        HassLightArchetype::HuePlay => DeviceArchetype::HuePlay,
+        HassLightArchetype::HueGo => DeviceArchetype::HueGo,
+        HassLightArchetype::HueBloom => DeviceArchetype::HueBloom,
+        HassLightArchetype::HueIris => DeviceArchetype::HueIris,
+        HassLightArchetype::HueSigne => DeviceArchetype::HueSigne,
+        HassLightArchetype::HueTube => DeviceArchetype::HueTube,
+    }
 }
 
 fn light_archetype(imported: &ImportedEntity) -> DeviceArchetype {
     match imported.kind {
-        HassEntityKind::Light => DeviceArchetype::ClassicBulb,
+        HassEntityKind::Light => device_archetype(
+            imported
+                .light_archetype
+                .unwrap_or(HassLightArchetype::ClassicBulb),
+        ),
         HassEntityKind::Switch => {
             if imported.switch_mode == Some(HassSwitchMode::Light) {
-                DeviceArchetype::ClassicBulb
+                device_archetype(
+                    imported
+                        .light_archetype
+                        .unwrap_or(HassLightArchetype::ClassicBulb),
+                )
             } else {
                 DeviceArchetype::Plug
             }
@@ -828,6 +868,12 @@ impl HassBackend {
             if matches!(imported.kind, HassEntityKind::Switch) {
                 imported.switch_mode = Some(ui_config.switch_mode(&imported.entity_id));
             }
+            if matches!(imported.kind, HassEntityKind::Light)
+                || (matches!(imported.kind, HassEntityKind::Switch)
+                    && imported.switch_mode == Some(HassSwitchMode::Light))
+            {
+                imported.light_archetype = Some(ui_config.light_archetype(&imported.entity_id));
+            }
 
             let detected_sensor_kind = imported.detected_sensor_kind.unwrap_or(HassSensorKind::Ignore);
             if matches!(imported.kind, HassEntityKind::BinarySensor) {
@@ -877,6 +923,7 @@ impl HassBackend {
                 supports_color_temp: imported.capabilities.supports_color_temp,
                 switch_mode: imported.switch_mode,
                 sensor_kind: selected_sensor_kind,
+                light_archetype: imported.light_archetype,
                 enabled: imported.sensor_enabled,
             });
         }
@@ -1014,6 +1061,12 @@ impl HassBackend {
         if matches!(imported.kind, HassEntityKind::Switch) {
             imported.switch_mode = Some(ui_config.switch_mode(&imported.entity_id));
         }
+        if matches!(imported.kind, HassEntityKind::Light)
+            || (matches!(imported.kind, HassEntityKind::Switch)
+                && imported.switch_mode == Some(HassSwitchMode::Light))
+        {
+            imported.light_archetype = Some(ui_config.light_archetype(&imported.entity_id));
+        }
         if matches!(imported.kind, HassEntityKind::BinarySensor) {
             let detected = imported.detected_sensor_kind.unwrap_or(HassSensorKind::Ignore);
             imported.service_kind = match ui_config.sensor_kind(&imported.entity_id, detected) {
@@ -1091,6 +1144,12 @@ impl HassBackend {
         }
         if matches!(imported.kind, HassEntityKind::Switch) {
             imported.switch_mode = Some(ui_config.switch_mode(&imported.entity_id));
+        }
+        if matches!(imported.kind, HassEntityKind::Light)
+            || (matches!(imported.kind, HassEntityKind::Switch)
+                && imported.switch_mode == Some(HassSwitchMode::Light))
+        {
+            imported.light_archetype = Some(ui_config.light_archetype(&imported.entity_id));
         }
         if matches!(imported.kind, HassEntityKind::BinarySensor) {
             let detected = imported.detected_sensor_kind.unwrap_or(HassSensorKind::Ignore);

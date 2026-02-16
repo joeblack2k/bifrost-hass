@@ -1,5 +1,29 @@
 export type HassSensorKind = 'motion' | 'contact' | 'ignore'
 export type HassSwitchMode = 'plug' | 'light'
+export type HassLightArchetype =
+  | 'classic_bulb'
+  | 'sultan_bulb'
+  | 'candle_bulb'
+  | 'spot_bulb'
+  | 'vintage_bulb'
+  | 'flood_bulb'
+  | 'ceiling_round'
+  | 'ceiling_square'
+  | 'pendant_round'
+  | 'pendant_long'
+  | 'floor_shade'
+  | 'floor_lantern'
+  | 'table_shade'
+  | 'wall_spot'
+  | 'wall_lantern'
+  | 'recessed_ceiling'
+  | 'hue_lightstrip'
+  | 'hue_play'
+  | 'hue_go'
+  | 'hue_bloom'
+  | 'hue_iris'
+  | 'hue_signe'
+  | 'hue_tube'
 export type HassFakeCloudMode = 'off' | 'connected' | 'outage' | 'custom'
 export type HassPortalCommunication = 'connected' | 'disconnected' | 'error'
 export type HassPortalConnectionState = 'connected' | 'disconnected' | 'connecting'
@@ -31,6 +55,7 @@ export interface HassEntityPreference {
   sensor_kind?: HassSensorKind | null
   sensor_enabled?: boolean | null
   switch_mode?: HassSwitchMode | null
+  light_archetype?: HassLightArchetype | null
 }
 
 export interface HassUiConfig {
@@ -67,6 +92,7 @@ export interface HassEntitySummary {
   supports_color_temp: boolean
   switch_mode?: HassSwitchMode | null
   sensor_kind?: HassSensorKind | null
+  light_archetype?: HassLightArchetype | null
   enabled: boolean
 }
 

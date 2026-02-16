@@ -1,9 +1,41 @@
 import { useEffect, useState } from 'react'
-import type { HassEntitySummary, HassRoomConfig, HassSensorKind, HassSwitchMode } from '../lib/types'
+import type {
+  HassEntitySummary,
+  HassLightArchetype,
+  HassRoomConfig,
+  HassSensorKind,
+  HassSwitchMode,
+} from '../lib/types'
 import { Chip } from './Chip'
 import { SelectField } from './SelectField'
 import { TextField } from './TextField'
 import { ToggleSwitch } from './ToggleSwitch'
+
+const LIGHT_ARCHETYPE_OPTIONS: Array<{ value: HassLightArchetype; label: string }> = [
+  { value: 'classic_bulb', label: 'Classic bulb' },
+  { value: 'sultan_bulb', label: 'Sultan bulb' },
+  { value: 'candle_bulb', label: 'Candle bulb' },
+  { value: 'spot_bulb', label: 'Spot bulb' },
+  { value: 'vintage_bulb', label: 'Vintage bulb' },
+  { value: 'flood_bulb', label: 'Flood bulb' },
+  { value: 'ceiling_round', label: 'Ceiling round' },
+  { value: 'ceiling_square', label: 'Ceiling square' },
+  { value: 'pendant_round', label: 'Pendant round' },
+  { value: 'pendant_long', label: 'Pendant long' },
+  { value: 'floor_shade', label: 'Floor shade' },
+  { value: 'floor_lantern', label: 'Floor lantern' },
+  { value: 'table_shade', label: 'Table shade' },
+  { value: 'wall_spot', label: 'Wall spot' },
+  { value: 'wall_lantern', label: 'Wall lantern' },
+  { value: 'recessed_ceiling', label: 'Recessed ceiling' },
+  { value: 'hue_lightstrip', label: 'Hue Lightstrip' },
+  { value: 'hue_play', label: 'Hue Play' },
+  { value: 'hue_go', label: 'Hue Go' },
+  { value: 'hue_bloom', label: 'Hue Bloom' },
+  { value: 'hue_iris', label: 'Hue Iris' },
+  { value: 'hue_signe', label: 'Hue Signe' },
+  { value: 'hue_tube', label: 'Hue Tube' },
+];
 
 export function EntityRow(props: {
   entity: HassEntitySummary
@@ -14,6 +46,7 @@ export function EntityRow(props: {
   onSetSensorKind: (entity: HassEntitySummary, kind: HassSensorKind) => void
   onSetSensorEnabled: (entity: HassEntitySummary, enabled: boolean) => void
   onSetSwitchMode: (entity: HassEntitySummary, mode: HassSwitchMode) => void
+  onSetLightArchetype: (entity: HassEntitySummary, archetype: HassLightArchetype) => void
 }) {
   const e = props.entity
 
@@ -105,6 +138,20 @@ export function EntityRow(props: {
             <div className="text-xs text-ink-1">
               `Plug` is excluded from Hue room light-group actions.
             </div>
+          </div>
+        </div>
+      )}
+
+      {e.domain === 'light' && (
+        <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_280px]">
+          <SelectField
+            label="Light icon"
+            value={(e.light_archetype || 'classic_bulb') as HassLightArchetype}
+            onChange={(v) => props.onSetLightArchetype(e, v as HassLightArchetype)}
+            options={LIGHT_ARCHETYPE_OPTIONS}
+          />
+          <div className="flex items-end">
+            <div className="text-xs text-ink-1">Changes the icon/archetype shown in Hue apps.</div>
           </div>
         </div>
       )}
