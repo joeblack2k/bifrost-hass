@@ -17,7 +17,7 @@ use crate::model::hass::{
     HassEntityPatchRequest, HassLinkButtonResponse, HassLogsResponse, HassPatinaEventRequest,
     HassPatinaPublic, HassResetBridgeResponse, HassRoomCreateRequest, HassRoomDeleteRequest,
     HassRoomRenameRequest, HassRoomsResponse, HassRuntimeConfigPublic, HassRuntimeConfigUpdate,
-    HassSensorKind, HassSyncResponse, HassTokenRequest, HassUiConfig, HassUiPayload,
+    HassSensorKind, HassSwitchMode, HassSyncResponse, HassTokenRequest, HassUiConfig, HassUiPayload,
 };
 use crate::routes::bifrost::BifrostApiResult;
 use crate::routes::extractor::Json;
@@ -159,6 +159,10 @@ async fn patch_entity(
         lock.set_entity_sensor_enabled(&req.entity_id, enabled);
         trigger_upsert = true;
     }
+    if let Some(mode) = req.switch_mode {
+        lock.set_entity_switch_mode(&req.entity_id, Some(mode));
+        trigger_upsert = true;
+    }
 
     lock.persist_and_log(&format!("Updated entity {}", req.entity_id))?;
     let cfg = lock.config_normalized();
@@ -190,6 +194,14 @@ async fn patch_entity(
             if matches!(selected, HassSensorKind::Ignore) {
                 included = false;
             }
+        } else if summary.domain == "switch" {
+            let mode = cfg.switch_mode(&summary.entity_id);
+            summary.switch_mode = Some(mode);
+            summary.mapped_type = if mode == HassSwitchMode::Light {
+                "light".to_string()
+            } else {
+                "switch".to_string()
+            };
         }
         summary.included = included;
     }

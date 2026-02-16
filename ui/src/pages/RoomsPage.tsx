@@ -111,7 +111,7 @@ function RoomRow(props: {
   const isDefault = props.room.id === 'home-assistant'
 
   return (
-    <div className="rounded-panel border border-black/10 bg-white/40 p-3 shadow-inset">
+    <div className="sub-panel p-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex-1">
           <TextField

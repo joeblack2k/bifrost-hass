@@ -2,7 +2,7 @@ use std::{collections::HashMap, net::Ipv4Addr};
 
 use chrono::{DateTime, Local, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::{Value, json};
+use serde_json::{Map, Value, json};
 use uuid::Uuid;
 
 use crate::api::{ColorGamut, DeviceProductData};
@@ -558,30 +558,104 @@ pub struct ApiLight {
 }
 
 impl ApiLight {
+    fn v1_archetype(archetype: &api::DeviceArchetype) -> String {
+        use api::DeviceArchetype;
+        match archetype {
+            DeviceArchetype::Plug => "plug".to_string(),
+            DeviceArchetype::ClassicBulb => "classicbulb".to_string(),
+            DeviceArchetype::SpotBulb => "spotbulb".to_string(),
+            DeviceArchetype::FloodBulb => "floodbulb".to_string(),
+            DeviceArchetype::CandleBulb => "candlebulb".to_string(),
+            DeviceArchetype::SultanBulb => "sultanbulb".to_string(),
+            _ => "classicbulb".to_string(),
+        }
+    }
+
+    fn v1_type(is_plug: bool, has_color: bool, has_ct: bool, has_dim: bool) -> String {
+        if is_plug {
+            return "On/Off plug-in unit".to_string();
+        }
+        if has_color {
+            return "Extended color light".to_string();
+        }
+        if has_ct {
+            return "Color temperature light".to_string();
+        }
+        if has_dim {
+            return "Dimmable light".to_string();
+        }
+        "On/Off light".to_string()
+    }
+
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     #[must_use]
     pub fn from_dev_and_light(uuid: &Uuid, dev: &api::Device, light: &api::Light) -> Self {
-        let colormode = if light.color.is_some() {
-            LightColorMode::Xy
+        let has_color = light.color.is_some();
+        let has_ct = light.color_temperature.is_some();
+        let has_dim = light.dimming.is_some();
+        let is_plug = matches!(
+            light.metadata.archetype,
+            api::DeviceArchetype::Plug
+        ) || matches!(
+            dev.product_data.product_archetype,
+            api::DeviceArchetype::Plug
+        );
+        let colormode = if has_color {
+            Some(LightColorMode::Xy)
+        } else if has_ct {
+            Some(LightColorMode::Ct)
         } else {
-            LightColorMode::Ct
+            None
         };
 
         let product_data = dev.product_data.clone();
+        let mut control = Map::new();
+        if has_color {
+            control.insert(
+                "colorgamut".to_string(),
+                json!([
+                    [ColorGamut::GAMUT_C.red.x, ColorGamut::GAMUT_C.red.y],
+                    [ColorGamut::GAMUT_C.green.x, ColorGamut::GAMUT_C.green.y],
+                    [ColorGamut::GAMUT_C.blue.x, ColorGamut::GAMUT_C.blue.y],
+                ]),
+            );
+            control.insert("colorgamuttype".to_string(), json!("C"));
+        }
+        if has_ct {
+            control.insert(
+                "ct".to_string(),
+                json!({
+                    "max": 500,
+                    "min": 153
+                }),
+            );
+        }
+        if has_dim {
+            control.insert("mindimlevel".to_string(), json!(10));
+            control.insert("maxlumen".to_string(), json!(800));
+        }
+
+        let mut capabilities = Map::new();
+        capabilities.insert("certified".to_string(), Value::Bool(true));
+        capabilities.insert("streaming".to_string(), json!({"proxy": true, "renderer": true}));
+        if !control.is_empty() {
+            capabilities.insert("control".to_string(), Value::Object(control));
+        }
+
+        let archetype = Self::v1_archetype(&light.metadata.archetype);
+        let function = if is_plug { "functional" } else { "mixed" };
 
         Self {
             state: ApiLightState {
                 on: light.on.on,
-                bri: light
-                    .dimming
-                    .map(|dim| ((dim.brightness * 2.54) as u32).max(1)),
+                bri: light.dimming.map(|dim| ((dim.brightness * 2.54) as u32).max(1)),
                 hue: None,
                 sat: None,
-                effect: Some("none".into()),
+                effect: if is_plug { None } else { Some("none".into()) },
                 xy: light.color.clone().map(|col| col.xy.into()),
                 ct: light.color_temperature.clone().and_then(|ct| ct.mirek),
                 alert: "select".into(),
-                colormode: Some(colormode),
+                colormode,
                 mode: "homeautomation".to_string(),
                 reachable: true,
             },
@@ -591,38 +665,17 @@ impl ApiLight {
             manufacturername: product_data.manufacturer_name,
             productname: product_data.product_name,
             productid: product_data.hardware_platform_type,
-
-            capabilities: json!({
-                "certified": true,
-                "control": {
-                    "colorgamut": [
-                        [ColorGamut::GAMUT_C.red.x,   ColorGamut::GAMUT_C.red.y  ],
-                        [ColorGamut::GAMUT_C.green.x, ColorGamut::GAMUT_C.green.y],
-                        [ColorGamut::GAMUT_C.blue.x,  ColorGamut::GAMUT_C.blue.y ],
-                    ],
-                    "colorgamuttype": "C",
-                    "ct": {
-                        "max": 500,
-                        "min": 153
-                    },
-                    "maxlumen": 800,
-                    "mindimlevel": 10
-                },
-                "streaming": {
-                    "proxy": true,
-                    "renderer": true
-                }
-            }),
+            capabilities: Value::Object(capabilities),
             config: json!({
-                "archetype": "spotbulb",
-                "function": "mixed",
-                "direction": "downwards",
+                "archetype": archetype,
+                "function": function,
+                "direction": "omnidirectional",
                 "startup": {
                     "mode": "safety",
                     "configured": true
                 }
             }),
-            light_type: "Extended color light".to_string(),
+            light_type: Self::v1_type(is_plug, has_color, has_ct, has_dim),
 
             /* FIXME: Should have form "00:11:22:33:44:55:66:77-0b" */
             uniqueid: uuid.as_simple().to_string(),

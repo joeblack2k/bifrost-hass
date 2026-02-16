@@ -19,7 +19,7 @@ use crate::backend::hass::{
     HassBackend, HassEntityBinding, HassEntityKind, HassLightCapabilities, HassServiceKind,
 };
 use crate::error::ApiResult;
-use crate::model::hass::{HassEntitySummary, HassSensorKind, HassUiConfig};
+use crate::model::hass::{HassEntitySummary, HassSensorKind, HassSwitchMode, HassUiConfig};
 use crate::resource::Resources;
 
 #[derive(Clone, Debug)]
@@ -38,6 +38,7 @@ struct ImportedEntity {
     capabilities: HassLightCapabilities,
     detected_sensor_kind: Option<HassSensorKind>,
     sensor_enabled: bool,
+    switch_mode: Option<HassSwitchMode>,
 }
 
 impl ImportedEntity {
@@ -52,7 +53,13 @@ impl ImportedEntity {
     fn mapped_type(&self) -> String {
         match self.service_kind {
             HassServiceKind::Light => "light".to_string(),
-            HassServiceKind::Switch => "switch".to_string(),
+            HassServiceKind::Switch => {
+                if self.switch_mode == Some(HassSwitchMode::Light) {
+                    "light".to_string()
+                } else {
+                    "switch".to_string()
+                }
+            }
             HassServiceKind::Motion => "motion".to_string(),
             HassServiceKind::Contact => "contact".to_string(),
         }
@@ -226,19 +233,30 @@ fn parse_imported_entity(state: &HassState, area_name: Option<String>) -> Option
         capabilities,
         detected_sensor_kind: detected_kind,
         sensor_enabled: true,
+        switch_mode: if matches!(kind, HassEntityKind::Switch) {
+            Some(HassSwitchMode::Plug)
+        } else {
+            None
+        },
     })
 }
 
-fn light_archetype(kind: HassEntityKind) -> DeviceArchetype {
-    match kind {
+fn light_archetype(imported: &ImportedEntity) -> DeviceArchetype {
+    match imported.kind {
         HassEntityKind::Light => DeviceArchetype::ClassicBulb,
-        HassEntityKind::Switch => DeviceArchetype::Plug,
+        HassEntityKind::Switch => {
+            if imported.switch_mode == Some(HassSwitchMode::Light) {
+                DeviceArchetype::ClassicBulb
+            } else {
+                DeviceArchetype::Plug
+            }
+        }
         HassEntityKind::BinarySensor => DeviceArchetype::UnknownArchetype,
     }
 }
 
 fn make_device(service_link: ResourceLink, imported: &ImportedEntity) -> Device {
-    let archetype = light_archetype(imported.kind);
+    let archetype = light_archetype(imported);
     let domain = imported.domain();
 
     Device {
@@ -269,7 +287,7 @@ fn ieee_like_from_uuid(id: &Uuid) -> String {
 
 fn apply_light_state(light: &mut Light, imported: &ImportedEntity) {
     light.metadata.name.clone_from(&imported.name);
-    light.metadata.archetype = light_archetype(imported.kind);
+    light.metadata.archetype = light_archetype(imported);
     light.on = On { on: imported.on };
 
     match imported.kind {
@@ -510,6 +528,7 @@ impl HassBackend {
                 service_link,
                 device_link,
                 capabilities: imported.capabilities,
+                switch_mode: imported.switch_mode,
             });
 
         let previous_service_link = binding.service_link;
@@ -519,6 +538,7 @@ impl HassBackend {
         binding.service_link = service_link;
         binding.device_link = device_link;
         binding.capabilities = imported.capabilities;
+        binding.switch_mode = imported.switch_mode;
 
         if previous_service_link != binding.service_link {
             self.light_map.remove(&previous_service_link.rid);
@@ -550,9 +570,9 @@ impl HassBackend {
         } else {
             res.update::<Device>(&binding.device_link.rid, |dev| {
                 dev.metadata.name.clone_from(&imported.name);
-                dev.metadata.archetype = light_archetype(imported.kind);
+                dev.metadata.archetype = light_archetype(imported);
                 dev.product_data.product_name.clone_from(&imported.name);
-                dev.product_data.product_archetype = light_archetype(imported.kind);
+                dev.product_data.product_archetype = light_archetype(imported);
                 dev.services = btreeset![binding.service_link, link_zbc];
             })?;
         }
@@ -577,7 +597,7 @@ impl HassBackend {
                 if res.get::<Light>(&binding.service_link).is_err() {
                     let mut light = Light::new(
                         binding.device_link,
-                        LightMetadata::new(light_archetype(imported.kind), &imported.name),
+                        LightMetadata::new(light_archetype(imported), &imported.name),
                     );
                     apply_light_state(&mut light, imported);
                     res.add(&binding.service_link, Resource::Light(light))?;
@@ -680,7 +700,14 @@ impl HassBackend {
                 if entity_room.get(&binding.entity_id) != Some(&room.room_id) {
                     continue;
                 }
-                if !matches!(binding.kind, HassEntityKind::Light | HassEntityKind::Switch) {
+                let grouped_as_light = match binding.kind {
+                    HassEntityKind::Light => true,
+                    HassEntityKind::Switch => {
+                        binding.switch_mode.unwrap_or(HassSwitchMode::Plug) == HassSwitchMode::Light
+                    }
+                    HassEntityKind::BinarySensor => false,
+                };
+                if !grouped_as_light {
                     continue;
                 }
                 if let Some(imported) = imported_map.get(&binding.entity_id) {
@@ -782,6 +809,9 @@ impl HassBackend {
             if let Some(alias) = ui_config.entity_alias(&imported.entity_id) {
                 imported.name = alias;
             }
+            if matches!(imported.kind, HassEntityKind::Switch) {
+                imported.switch_mode = Some(ui_config.switch_mode(&imported.entity_id));
+            }
 
             let detected_sensor_kind = imported.detected_sensor_kind.unwrap_or(HassSensorKind::Ignore);
             if matches!(imported.kind, HassEntityKind::BinarySensor) {
@@ -829,6 +859,7 @@ impl HassBackend {
                 supports_brightness: imported.capabilities.supports_brightness,
                 supports_color: imported.capabilities.supports_color,
                 supports_color_temp: imported.capabilities.supports_color_temp,
+                switch_mode: imported.switch_mode,
                 sensor_kind: selected_sensor_kind,
                 enabled: imported.sensor_enabled,
             });
@@ -964,6 +995,9 @@ impl HassBackend {
         if let Some(alias) = ui_config.entity_alias(&imported.entity_id) {
             imported.name = alias;
         }
+        if matches!(imported.kind, HassEntityKind::Switch) {
+            imported.switch_mode = Some(ui_config.switch_mode(&imported.entity_id));
+        }
         if matches!(imported.kind, HassEntityKind::BinarySensor) {
             let detected = imported.detected_sensor_kind.unwrap_or(HassSensorKind::Ignore);
             imported.service_kind = match ui_config.sensor_kind(&imported.entity_id, detected) {
@@ -1038,6 +1072,9 @@ impl HassBackend {
 
         if let Some(alias) = ui_config.entity_alias(&imported.entity_id) {
             imported.name = alias;
+        }
+        if matches!(imported.kind, HassEntityKind::Switch) {
+            imported.switch_mode = Some(ui_config.switch_mode(&imported.entity_id));
         }
         if matches!(imported.kind, HassEntityKind::BinarySensor) {
             let detected = imported.detected_sensor_kind.unwrap_or(HassSensorKind::Ignore);

@@ -1,4 +1,5 @@
 export type HassSensorKind = 'motion' | 'contact' | 'ignore'
+export type HassSwitchMode = 'plug' | 'light'
 
 export interface HassRoomConfig {
   id: string
@@ -13,6 +14,7 @@ export interface HassEntityPreference {
   alias?: string | null
   sensor_kind?: HassSensorKind | null
   sensor_enabled?: boolean | null
+  switch_mode?: HassSwitchMode | null
 }
 
 export interface HassUiConfig {
@@ -42,6 +44,7 @@ export interface HassEntitySummary {
   supports_brightness: boolean
   supports_color: boolean
   supports_color_temp: boolean
+  switch_mode?: HassSwitchMode | null
   sensor_kind?: HassSensorKind | null
   enabled: boolean
 }

@@ -20,7 +20,7 @@ use bifrost_api::config::HassServer;
 use hue::api::{RType, ResourceLink};
 
 use crate::error::{ApiError, ApiResult};
-use crate::model::hass::{HassRoomConfig, HassRuntimeState, HassUiState};
+use crate::model::hass::{HassRoomConfig, HassRuntimeState, HassSwitchMode, HassUiState};
 use crate::resource::Resources;
 use crate::server::appstate::AppState;
 
@@ -63,6 +63,7 @@ pub(super) struct HassEntityBinding {
     pub service_link: ResourceLink,
     pub device_link: ResourceLink,
     pub capabilities: HassLightCapabilities,
+    pub switch_mode: Option<HassSwitchMode>,
 }
 
 #[derive(Clone, Debug)]

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { patchEntity, postPatinaEvent, putUiConfig } from './lib/api'
-import type { HassEntitySummary, HassSensorKind, HassUiConfig } from './lib/types'
+import type { HassEntitySummary, HassSensorKind, HassSwitchMode, HassUiConfig } from './lib/types'
 import { Panel } from './components/Panel'
 import { TactileButton } from './components/TactileButton'
 import { AboutPage } from './pages/AboutPage'
@@ -153,6 +153,13 @@ function AppContent(props: { data: ReturnType<typeof useBifrostData> }) {
     })
   }
 
+  function setSwitchMode(entity: HassEntitySummary, mode: HassSwitchMode) {
+    void callWithToast(`Switch mode updated: ${entity.entity_id}`, async () => {
+      await patchEntity(entity.entity_id, { switch_mode: mode })
+      await postPatinaEvent('toggle', `switch-mode:${entity.entity_id}`).catch(() => {})
+    })
+  }
+
   return (
     <div className="mx-auto max-w-[1400px] px-2 pb-10 pt-2 sm:px-4 sm:pt-4">
       <header className="sticky top-2 z-20 mb-3">
@@ -225,13 +232,14 @@ function AppContent(props: { data: ReturnType<typeof useBifrostData> }) {
               onSetAlias={setAlias}
               onSetSensorKind={setSensorKind}
               onSetSensorEnabled={setSensorEnabled}
+              onSetSwitchMode={setSwitchMode}
             />
           )}
 
           {tab === 'switches' && (
             <EntitiesPage
               title="Switches"
-              subtitle="Home Assistant switch entities exposed as Hue plugs."
+              subtitle="Home Assistant switches with selectable Hue type (plug or light)."
               entities={entities}
               rooms={rooms}
               predicate={(e) => e.domain === 'switch'}
@@ -240,6 +248,7 @@ function AppContent(props: { data: ReturnType<typeof useBifrostData> }) {
               onSetAlias={setAlias}
               onSetSensorKind={setSensorKind}
               onSetSensorEnabled={setSensorEnabled}
+              onSetSwitchMode={setSwitchMode}
             />
           )}
 
@@ -255,6 +264,7 @@ function AppContent(props: { data: ReturnType<typeof useBifrostData> }) {
               onSetAlias={setAlias}
               onSetSensorKind={setSensorKind}
               onSetSensorEnabled={setSensorEnabled}
+              onSetSwitchMode={setSwitchMode}
             />
           )}
 
@@ -270,6 +280,7 @@ function AppContent(props: { data: ReturnType<typeof useBifrostData> }) {
               onSetAlias={setAlias}
               onSetSensorKind={setSensorKind}
               onSetSensorEnabled={setSensorEnabled}
+              onSetSwitchMode={setSwitchMode}
             />
           )}
 

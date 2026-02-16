@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import type { HassEntitySummary, HassRoomConfig, HassSensorKind } from '../lib/types'
+import type { HassEntitySummary, HassRoomConfig, HassSensorKind, HassSwitchMode } from '../lib/types'
 import { EntityRow } from '../components/EntityRow'
 
 function norm(s: string) {
@@ -18,6 +18,7 @@ export function EntitiesPage(props: {
   onSetAlias: (entity: HassEntitySummary, alias: string) => void
   onSetSensorKind: (entity: HassEntitySummary, kind: HassSensorKind) => void
   onSetSensorEnabled: (entity: HassEntitySummary, enabled: boolean) => void
+  onSetSwitchMode: (entity: HassEntitySummary, mode: HassSwitchMode) => void
 }) {
   const [q, setQ] = useState('')
 
@@ -46,8 +47,8 @@ export function EntitiesPage(props: {
   const virtualizer = useVirtualizer({
     count: filtered.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 190,
-    measureElement: (el) => el?.getBoundingClientRect().height ?? 190,
+    // Keep a conservative fixed estimate to avoid row overlap on complex cards.
+    estimateSize: () => 260,
     overscan: 8,
   })
 
@@ -90,7 +91,6 @@ export function EntitiesPage(props: {
               <div
                 key={e.entity_id}
                 data-index={vi.index}
-                ref={virtualizer.measureElement}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -108,6 +108,7 @@ export function EntitiesPage(props: {
                   onSetAlias={props.onSetAlias}
                   onSetSensorKind={props.onSetSensorKind}
                   onSetSensorEnabled={props.onSetSensorEnabled}
+                  onSetSwitchMode={props.onSetSwitchMode}
                 />
               </div>
             )

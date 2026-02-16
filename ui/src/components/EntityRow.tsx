@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { HassEntitySummary, HassRoomConfig, HassSensorKind } from '../lib/types'
+import type { HassEntitySummary, HassRoomConfig, HassSensorKind, HassSwitchMode } from '../lib/types'
 import { Chip } from './Chip'
 import { SelectField } from './SelectField'
 import { TextField } from './TextField'
@@ -13,6 +13,7 @@ export function EntityRow(props: {
   onSetAlias: (entity: HassEntitySummary, alias: string) => void
   onSetSensorKind: (entity: HassEntitySummary, kind: HassSensorKind) => void
   onSetSensorEnabled: (entity: HassEntitySummary, enabled: boolean) => void
+  onSetSwitchMode: (entity: HassEntitySummary, mode: HassSwitchMode) => void
 }) {
   const e = props.entity
 
@@ -88,6 +89,25 @@ export function EntityRow(props: {
           ) : null}
         </div>
       </div>
+
+      {e.domain === 'switch' && (
+        <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_190px]">
+          <SelectField
+            label="Hue device type"
+            value={(e.switch_mode || 'plug') as HassSwitchMode}
+            onChange={(v) => props.onSetSwitchMode(e, v as HassSwitchMode)}
+            options={[
+              { value: 'plug', label: 'Power plug' },
+              { value: 'light', label: 'Light' },
+            ]}
+          />
+          <div className="flex items-end">
+            <div className="text-xs text-ink-1">
+              `Plug` is excluded from Hue room light-group actions.
+            </div>
+          </div>
+        </div>
+      )}
 
       {e.domain === 'binary_sensor' && (
         <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_190px]">

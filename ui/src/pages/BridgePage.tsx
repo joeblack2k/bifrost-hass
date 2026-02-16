@@ -53,7 +53,7 @@ export function BridgePage(props: {
       <Panel title="Bridge" subtitle="Diagnostics and bridge actions.">
         <div className="grid gap-2 sm:grid-cols-2">
           {kv.map(([k, v]) => (
-            <div key={k} className="rounded-control border border-black/10 bg-white/45 px-3 py-2 shadow-inset">
+            <div key={k} className="sub-panel px-3 py-2">
               <div className="text-[11px] font-semibold tracking-[0.08em] text-ink-1/70 uppercase">{k}</div>
               <div className="mt-1 break-words text-[14px] font-semibold text-ink-0">{v}</div>
             </div>
@@ -134,4 +134,3 @@ export function BridgePage(props: {
     </div>
   )
 }
-

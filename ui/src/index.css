@@ -120,4 +120,11 @@
       );
     mix-blend-mode: soft-light;
   }
+
+  .sub-panel {
+    border-radius: var(--radius-control);
+    border: 1px solid rgba(122, 146, 201, 0.35);
+    background: linear-gradient(180deg, rgba(16, 27, 44, 0.9), rgba(12, 22, 37, 0.9));
+    box-shadow: var(--shadow-inset);
+  }
 }

@@ -16,6 +16,13 @@ pub enum HassSensorKind {
     Ignore,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum HassSwitchMode {
+    Plug,
+    Light,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct HassRoomConfig {
     pub id: String,
@@ -38,6 +45,8 @@ pub struct HassEntityPreference {
     pub sensor_kind: Option<HassSensorKind>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sensor_enabled: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub switch_mode: Option<HassSwitchMode>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
@@ -215,6 +224,7 @@ impl HassUiConfig {
                 || pref.alias.is_some()
                 || pref.sensor_kind.is_some()
                 || pref.sensor_enabled.is_some()
+                || pref.switch_mode.is_some()
         });
     }
 
@@ -288,6 +298,15 @@ impl HassUiConfig {
         self.normalize();
     }
 
+    pub fn set_entity_switch_mode(&mut self, entity_id: &str, switch_mode: Option<HassSwitchMode>) {
+        let pref = self
+            .entity_preferences
+            .entry(entity_id.to_string())
+            .or_default();
+        pref.switch_mode = switch_mode;
+        self.normalize();
+    }
+
     #[must_use]
     pub fn entity_alias(&self, entity_id: &str) -> Option<String> {
         self.entity_preferences
@@ -310,6 +329,14 @@ impl HassUiConfig {
             .get(entity_id)
             .and_then(|x| x.sensor_enabled)
             .unwrap_or(true)
+    }
+
+    #[must_use]
+    pub fn switch_mode(&self, entity_id: &str) -> HassSwitchMode {
+        self.entity_preferences
+            .get(entity_id)
+            .and_then(|x| x.switch_mode)
+            .unwrap_or(HassSwitchMode::Plug)
     }
 
     pub fn room_for_area(&self, area_name: &str) -> Option<String> {
@@ -427,6 +454,8 @@ pub struct HassEntitySummary {
     pub supports_color: bool,
     #[serde(default)]
     pub supports_color_temp: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub switch_mode: Option<HassSwitchMode>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sensor_kind: Option<HassSensorKind>,
     #[serde(default)]
@@ -889,6 +918,10 @@ impl HassUiState {
         self.config.set_entity_sensor_enabled(entity_id, enabled);
     }
 
+    pub fn set_entity_switch_mode(&mut self, entity_id: &str, switch_mode: Option<HassSwitchMode>) {
+        self.config.set_entity_switch_mode(entity_id, switch_mode);
+    }
+
     pub fn visible_logs(&self) -> Vec<String> {
         self.logs.iter().rev().cloned().collect()
     }
@@ -964,6 +997,8 @@ pub struct HassEntityPatchRequest {
     pub sensor_kind: Option<HassSensorKind>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub enabled: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub switch_mode: Option<HassSwitchMode>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]

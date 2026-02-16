@@ -13,6 +13,7 @@ use crate::backend::hass::{
     HassBackend, HassEntityBinding, HassEntityKind, HassServiceKind,
 };
 use crate::error::ApiResult;
+use crate::model::hass::HassSwitchMode;
 
 impl HassBackend {
     fn lookup_binding_by_light(&self, link: &ResourceLink) -> Option<HassEntityBinding> {
@@ -179,7 +180,14 @@ impl HassBackend {
 
         for child in children {
             if let Some(binding) = self.lookup_binding_by_device(&child) {
-                if matches!(binding.kind, HassEntityKind::Light | HassEntityKind::Switch) {
+                let grouped_as_light = match binding.kind {
+                    HassEntityKind::Light => true,
+                    HassEntityKind::Switch => {
+                        binding.switch_mode.unwrap_or(HassSwitchMode::Plug) == HassSwitchMode::Light
+                    }
+                    HassEntityKind::BinarySensor => false,
+                };
+                if grouped_as_light {
                     self.backend_light_update(&binding, &light_upd).await?;
                 }
             }

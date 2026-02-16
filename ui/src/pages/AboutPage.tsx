@@ -50,7 +50,7 @@ export function AboutPage(props: {
           <AboutKv k="Stage" v={stageLabel} />
         </div>
 
-        <div className="mt-4 rounded-panel border border-black/10 bg-white/35 p-3">
+        <div className="sub-panel mt-4 p-3">
           <ToggleSwitch
             checked={preview}
             onChange={setPreview}
@@ -92,7 +92,7 @@ export function AboutPage(props: {
 
 function AboutKv(props: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="rounded-control border border-black/10 bg-white/45 px-3 py-2 shadow-inset">
+    <div className="sub-panel px-3 py-2">
       <div className="text-[11px] font-semibold tracking-[0.08em] text-ink-1/70 uppercase">{props.k}</div>
       <div className={`mt-1 break-words text-[14px] text-ink-0 ${props.mono ? 'font-mono' : 'font-semibold'}`}>
         {props.v}
