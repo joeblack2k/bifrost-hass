@@ -1,325 +1,148 @@
 ![](doc/logo-title-640x160.png)
 
-# Bifrost Bridge
+# bifrost-hass-ha-bridge
 
-Bifrost emulates a Philips Hue Bridge and can expose lights/switches from:
+Home Assistant focused Hue Bridge emulator, based on [chrivers/bifrost](https://github.com/chrivers/bifrost).
 
-- Home Assistant (`light.*` and `switch.*`)
-- [Zigbee2Mqtt](https://www.zigbee2mqtt.io/)
+## Recommended (No-Nonsense) Setup: Docker Compose
 
-## This Fork (`bifrost-hass`)
+This is the primary way to run it.
 
-This repository is a Home Assistant focused fork:
+You only need:
 
-- Canonical repo: https://github.com/joeblack2k/bifrost-hass-ha-bridge
+- a Docker host on your LAN
+- Home Assistant URL
+- bridge IP/MAC settings
 
-- Adds a dedicated `hass` backend with Home Assistant runtime token/url management
-- Exposes `light.*`, `switch.*`, and `binary_sensor.*` (motion/contact mapping)
-- Includes a modern web UI at `/bifrost/ui` (tabs, search, room mapping, bridge actions)
-- Supports startup + manual sync flow (`Sync with Home Assistant`)
-- Keeps Zigbee2MQTT optional (not required for HA-only setups)
+No manual config file editing is required for the standard setup.
 
-## Quick Start (Docker Image + Compose)
+## 1. Create a folder
 
-Use the prebuilt image from GHCR:
-
-- `ghcr.io/joeblack2k/bifrost-hass-ha-bridge:latest`
-
-Create `docker-compose.yaml`:
-
-```yaml
-services:
-  bifrost-hass:
-    image: ghcr.io/joeblack2k/bifrost-hass-ha-bridge:latest
-    container_name: bifrost-hass
-    restart: unless-stopped
-    network_mode: host
-    env_file:
-      - ./bifrost-hass.env
-    volumes:
-      - ./config.yaml:/app/config.yaml:ro
-      - ./hass-ui.yaml:/app/hass-ui.yaml
-      - ./hass-runtime.yaml:/app/hass-runtime.yaml
-      - ./data:/app/data
+```sh
+mkdir -p bifrost-hass
+cd bifrost-hass
 ```
 
-Create `bifrost-hass.env`:
+## 2. Download compose template
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/joeblack2k/bifrost-hass-ha-bridge/master/deploy/docker-compose.ghcr.yaml -o compose.yaml
+```
+
+## 3. Create `.env`
 
 ```env
-HASS_TOKEN=replace-with-your-long-lived-home-assistant-token
+# Required: LAN IP where this bridge should be reachable
+# For host networking, set this to the Docker host LAN IP.
+BRIDGE_IP=192.168.1.50
+
+# Required: Home Assistant URL
+HASS_URL=http://192.168.1.10:8123
+
+# Optional but recommended (otherwise set token in UI)
+HASS_TOKEN=
+
+# Optional
+BRIDGE_NAME=Bifrost
+BRIDGE_NETMASK=255.255.255.0
+BRIDGE_GATEWAY=192.168.1.1
+BRIDGE_TZ=Europe/Amsterdam
+
+# Optional: if empty, MAC is auto-derived from BRIDGE_IP
+BRIDGE_MAC=
 ```
 
-Create `config.yaml`:
-
-```yaml
-bifrost:
-  state_file: "data/state.yaml"
-  cert_file: "data/cert.pem"
-  hass_ui_file: "hass-ui.yaml"
-  hass_runtime_file: "hass-runtime.yaml"
-
-bridge:
-  name: Bifrost
-  mac: "02:42:c0:a8:02:06"
-  ipaddress: 192.168.2.6
-  http_port: 80
-  https_port: 443
-  entm_port: 2100
-  netmask: 255.255.255.0
-  gateway: 192.168.2.1
-  timezone: Europe/Amsterdam
-
-hass:
-  homeassistant:
-    url: http://192.168.2.5:8123
-    token_env: HASS_TOKEN
-    poll_interval_secs: 5
-```
-
-Create `hass-ui.yaml`:
-
-```yaml
-exclude_entity_ids: []
-exclude_name_patterns: []
-include_unavailable: true
-hidden_entity_ids: []
-default_add_new_devices_to_hue: false
-sync_hass_areas_to_rooms: true
-ignored_area_names: []
-rooms: []
-entity_preferences: {}
-```
-
-Create `hass-runtime.yaml`:
-
-```yaml
-enabled: true
-url: http://192.168.2.5:8123
-token: null
-sync_mode: manual
-```
-
-Run:
+## 4. Start
 
 ```sh
 docker compose up -d
 ```
 
-Open:
+## 5. Open the UI
 
-- `http://<bridge-ip>/bifrost/ui`
+- `http://<BRIDGE_IP>/bifrost/ui`
 
-Wiki pages are stored in-repo:
+From the UI:
 
-- [`wiki/Home.md`](wiki/Home.md)
-- [`wiki/Deployment.md`](wiki/Deployment.md)
-- [`wiki/Troubleshooting.md`](wiki/Troubleshooting.md)
-- [`wiki/Sources-and-Credits.md`](wiki/Sources-and-Credits.md)
+1. Setup tab: check HA URL/token and connect if needed
+2. Press `Sync with Home Assistant`
+3. Press `Press bridge button`
+4. Pair from Hue app
+5. Use `Lights`, `Switches`, `Sensors`, `Hidden` tabs to add entities
 
-If you are already familiar with [DiyHue](https://github.com/diyhue/diyHue), you
-might like to read the [comparison with DiyHue](doc/comparison-with-diyhue.md).
+## What this exposes
 
-Questions, feedback, comments? Join us on discord
+- `light.*` -> Hue lights
+- `switch.*` -> Hue plug-like lights
+- `binary_sensor.*` -> Hue motion/contact (configurable)
 
-[![Join Valhalla on Discord](https://discordapp.com/api/guilds/1276604041727578144/widget.png?style=banner2)](https://discord.gg/YvBKjHBJpA)
+Default behavior:
 
-## Installation guide
+- entities are hidden by default
+- add explicitly using `Add to Hue app`
 
-There are currently three ways you can install Bifrost:
+## Docker image
 
-1.  [Install manually](#manual) from source (recommended)
-2.  [Install it via Docker](#docker) for container-based deployment.
-3.  Install as Home Assistant Add-on. Please see the
-    [bifrost-hassio](https://github.com/chrivers/bifrost-hassio) project for
-    more information.
+- `ghcr.io/joeblack2k/bifrost-hass-ha-bridge:latest`
 
-### Manual
+Package page:
 
-To install Bifrost from source, you will need the following:
+- [GHCR package](https://github.com/users/joeblack2k/packages/container/package/bifrost-hass-ha-bridge)
 
-1.  The rust language toolchain (https://rustup.rs/)
-2.  At least one backend (`hass` and/or `z2m`)
-3.  The MAC address of the network interface you want to run the server on
-4.  `build-essential` package for compiling the source code (on Debian/Ubuntu systems)
+## Auto build/publish
 
-First, install a few necessary build dependencies:
+GitHub Actions publishes a new GHCR image on every push to `master`:
 
-```sh
-sudo apt install build-essential pkg-config libssl3 libssl-dev
-```
+- Workflow: `.github/workflows/docker-publish.yml`
 
-When you have these things available, install bifrost:
+Tags include:
 
-```sh
-cargo install --git https://github.com/chrivers/bifrost.git
-```
+- `latest`
+- short commit SHA
+- `master-YYYY-MM-DD`
 
-After Cargo has finished downloading, compiling, and installing Bifrost, you
-should have the "bifrost" command available to you.
-
-The last step is to create a configuration for bifrost, `config.yaml`.
-
-Here's a minimal example:
-
-```yaml
-bifrost:
-  hass_ui_file: "hass-ui.yaml"
-  hass_runtime_file: "hass-runtime.yaml"
-
-bridge:
-  name: Bifrost
-  mac: 00:11:22:33:44:55
-  ipaddress: 10.12.0.20
-  netmask: 255.255.255.0
-  gateway: 10.12.0.1
-  timezone: Europe/Copenhagen
-
-hass:
-  homeassistant:
-    url: http://192.168.2.5:8123
-    token_env: HASS_TOKEN
-```
-
-Please adjust this as needed. Particularly, make **sure** the "mac:" field
-matches a mac address on the network interface you want to serve requests from.
-
-Make sure to read the [configuration reference](doc/config-reference.md) to
-learn how to adjust the configuration file.
-
-This mac address if used to generate a self-signed certificate, so the Hue App
-will recognize this as a "real" Hue Bridge. If the mac address is incorrect,
-this will not work. [How to find your mac address](doc/how-to-find-mac-linux.md).
-
-Now you can start Bifrost. Simple start the "bifrost" command from the same
-directory where you put the `config.yaml`:
+## Update
 
 ```sh
-bifrost
+docker compose pull
+docker compose up -d
 ```
 
-At this point, the server should start: (log timestamps omitted for clarity)
+## Troubleshooting
 
-```
-  ===================================================================
-   ███████████   ███     ██████                              █████
-  ░░███░░░░░███ ░░░     ███░░███                            ░░███
-   ░███    ░███ ████   ░███ ░░░  ████████   ██████   █████  ███████
-   ░██████████ ░░███  ███████   ░░███░░███ ███░░███ ███░░  ░░░███░
-   ░███░░░░░███ ░███ ░░░███░     ░███ ░░░ ░███ ░███░░█████   ░███
-   ░███    ░███ ░███   ░███      ░███     ░███ ░███ ░░░░███  ░███ ███
-   ███████████  █████  █████     █████    ░░██████  ██████   ░░█████
-  ░░░░░░░░░░░  ░░░░░  ░░░░░     ░░░░░      ░░░░░░  ░░░░░░     ░░░░░
-  ===================================================================
+### Hue app cannot find bridge
 
-  DEBUG bifrost > Configuration loaded successfully
-  DEBUG bifrost::server::certificate > Found existing certificate for bridge id [001122fffe334455]
-  DEBUG bifrost::state               > Existing state file found, loading..
-  INFO  bifrost::mdns                > Registered service bifrost-001122334455._hue._tcp.local.
-  INFO  bifrost                      > Serving mac [00:11:22:33:44:55]
-  DEBUG bifrost::state               > Loading certificate from [cert.pem]
-  INFO  bifrost::server              > http listening on 10.12.0.20:80
-  INFO  bifrost::server              > https listening on 10.12.0.20:443
-  INFO  bifrost::z2m                 > [server1] Connecting to ws://10.0.0.100:8080
-  DEBUG tungstenite::handshake::client > Client handshake done.
-  DEBUG tungstenite::handshake::client > Client handshake done.
-  DEBUG bifrost::z2m                   > [server1] Ignoring unsupported device Coordinator
-  INFO  bifrost::z2m                   > [server1] Adding light IeeeAddress(000000fffe111111): [office_1] (TRADFRI bulb GU10 CWS 345lm)
-  INFO  bifrost::z2m                   > [server1] Adding light IeeeAddress(222222fffe333333): [office_2] (TRADFRI bulb GU10 CWS 345lm)
-  INFO  bifrost::z2m                   > [server1] Adding light IeeeAddress(444444fffe555555): [office_3] (TRADFRI bulb GU10 CWS 345lm)
-...
-```
+- phone and bridge must be on same LAN
+- `BRIDGE_IP` must be reachable and correct
+- if bridge identity changed, remove old pairing in Hue app and pair again
 
-The log output should show Bifrost connecting to your configured backends and
-finding lights/switches to expose to Hue clients.
+### No devices in Hue app
 
-At this point, you're running a Bifrost bridge.
+- entities are hidden by default
+- in `/bifrost/ui`, toggle `Add to Hue app`
+- run `Sync with Home Assistant` after adding new HA entities
 
-The Philips Hue app should be able to find it on your network!
+### HA auth errors
 
-### Home Assistant Backend Notes
+- set a valid long-lived HA token in `.env` or in Setup tab
+- verify `HASS_URL` is reachable from container
 
-- Exported by default: entities are hidden by default, then explicitly added via `/bifrost/ui`.
-- Supported domains: `light.*`, `switch.*`, `binary_sensor.*` (motion/contact mapping).
-- `switch.*` is exposed as Hue light resources with plug archetype.
-- Commands are routed to Home Assistant services:
-  - lights: `light.turn_on` / `light.turn_off`
-  - switches: `switch.turn_on` / `switch.turn_off`
-- Home Assistant token can be configured in GUI (`/bifrost/ui`) or env var (`HASS_TOKEN` by default).
-- Sync mode is startup + manual (`Sync with Home Assistant` button in GUI).
+## Wiki / Docs
 
-### Mobile Web UI
+- [Wiki Home](wiki/Home.md)
+- [Wiki Deployment](wiki/Deployment.md)
+- [Wiki Troubleshooting](wiki/Troubleshooting.md)
+- [Wiki Sources and Credits](wiki/Sources-and-Credits.md)
+- [Config reference](doc/config-reference.md)
 
-A touch-friendly configuration page is available at:
+## Credits
 
-- `http://<bridge-ip>/bifrost/ui`
+Massive thanks to:
 
-Supported actions:
+- [chrivers/bifrost](https://github.com/chrivers/bifrost)
+- [diyhue/diyHue](https://github.com/diyhue/diyHue)
+- [openhue/openhue-api](https://github.com/openhue/openhue-api)
 
-- manual sync
-- bridge linkbutton press
-- add/hide entities per tab (lights/switches/sensors/hidden)
-- room assignment + room management
-- sensor kind mapping (motion/contact/ignore) + sensor enabled toggle
-- local Hue alias rename
-- runtime HA URL/token connect/disconnect
+## Canonical repository
 
-Settings are persisted in `hass-ui.yaml` (path configurable by `bifrost.hass_ui_file`).
-Runtime HA connection settings are persisted in `hass-runtime.yaml` (path configurable by `bifrost.hass_runtime_file`).
-
-### Docker
-
-#### Docker Installation
-
-To install Bifrost with Docker, you will need the following:
-
-1.  At least one zigbee2mqtt server to connect to
-2.  The MAC address of the network interface you want to run the server on
-3.  A running [Docker](https://docs.docker.com/engine/install/) instance
-    with [Docker-Compose](https://docs.docker.com/compose/install/) installed
-4.  Have `git` installed to clone this repository
-
-Please choose one of the following installation methods:
-
-- [Install using Docker Compose](doc/docker-compose-install.md) (recommended for most users)
-- [Install using Docker Image](doc/docker-image-install.md) (for direct image pulls)
-
-# Configuration
-
-See [configuration reference](doc/config-reference.md).
-
-# Troubleshooting
-
-- Hue app cannot find bridge:
-  - Verify Bifrost is on the same LAN segment as your phone.
-  - Verify `bridge.ipaddress`, `bridge.mac`, and ports `80/443` are correct.
-  - If bridge identity changed (MAC/cert), remove old Hue bridge pairing and pair again.
-- Home Assistant token/auth errors:
-  - Ensure `HASS_TOKEN` exists in container environment.
-  - Use a long-lived Home Assistant access token.
-  - Check backend logs for `unauthorized` responses.
-- Entity missing in Hue:
-  - Confirm it is `light.*`, `switch.*`, or `binary_sensor.*` in Home Assistant.
-  - In `/bifrost/ui`, use `Add to Hue app` for the entity (default is hidden).
-  - Press `Sync with Home Assistant` after config changes.
-
-# Problems? Questions? Feedback?
-
-Please note: Bifrost is a very young project. Some things are incomplete, and/or
-broken when they shouldn't be.
-
-Consider joining us on discord:
-
-[![Join Valhalla on Discord](https://discordapp.com/api/guilds/1276604041727578144/widget.png?style=banner2)](https://discord.gg/YvBKjHBJpA)
-
-If you have any problems, questions or suggestions, feel free to [create an
-issue](https://github.com/joeblack2k/bifrost-hass-ha-bridge/issues) on this project.
-
-Also, pull requests are always welcome!
-
-## Acknowledgements
-
-Huge thanks to:
-
-- [chrivers/bifrost](https://github.com/chrivers/bifrost) for the core bridge emulator and architecture
-- The Bifrost maintainers and contributors
-- [diyhue/diyHue](https://github.com/diyhue/diyHue) and [openhue/openhue-api](https://github.com/openhue/openhue-api) for compatibility references
+- [joeblack2k/bifrost-hass-ha-bridge](https://github.com/joeblack2k/bifrost-hass-ha-bridge)

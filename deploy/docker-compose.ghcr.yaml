@@ -4,10 +4,54 @@ services:
     container_name: bifrost-hass
     restart: unless-stopped
     network_mode: host
-    env_file:
-      - ./bifrost-hass.env
+    environment:
+      BRIDGE_NAME: ${BRIDGE_NAME:-Bifrost}
+      BRIDGE_IP: ${BRIDGE_IP:-192.168.1.50}
+      BRIDGE_NETMASK: ${BRIDGE_NETMASK:-255.255.255.0}
+      BRIDGE_GATEWAY: ${BRIDGE_GATEWAY:-192.168.1.1}
+      BRIDGE_TZ: ${BRIDGE_TZ:-Europe/Amsterdam}
+      BRIDGE_MAC: ${BRIDGE_MAC:-}
+      HASS_URL: ${HASS_URL:-http://192.168.1.10:8123}
+      HASS_TOKEN: ${HASS_TOKEN:-}
+    command: |
+      sh -euc '
+      if [ -n "$${BRIDGE_MAC:-}" ]; then
+        mac="$${BRIDGE_MAC}";
+      else
+        o1=$$(echo "$${BRIDGE_IP}" | cut -d. -f1);
+        o2=$$(echo "$${BRIDGE_IP}" | cut -d. -f2);
+        o3=$$(echo "$${BRIDGE_IP}" | cut -d. -f3);
+        o4=$$(echo "$${BRIDGE_IP}" | cut -d. -f4);
+        mac=$$(printf "02:42:%02x:%02x:%02x:%02x" "$$o1" "$$o2" "$$o3" "$$o4");
+      fi;
+      cat > /app/config.yaml <<CFG
+      bifrost:
+        state_file: "data/state.yaml"
+        cert_file: "data/cert.pem"
+        hass_ui_file: "data/hass-ui.yaml"
+        hass_runtime_file: "data/hass-runtime.yaml"
+
+      bridge:
+        name: "$${BRIDGE_NAME}"
+        mac: "$$mac"
+        ipaddress: $${BRIDGE_IP}
+        http_port: 80
+        https_port: 443
+        entm_port: 2100
+        netmask: $${BRIDGE_NETMASK}
+        gateway: $${BRIDGE_GATEWAY}
+        timezone: $${BRIDGE_TZ}
+
+      hass:
+        homeassistant:
+          url: "$${HASS_URL}"
+          token_env: HASS_TOKEN
+          poll_interval_secs: 5
+      CFG
+      exec /app/bifrost
+      '
     volumes:
-      - ./config.yaml:/app/config.yaml:ro
-      - ./hass-ui.yaml:/app/hass-ui.yaml
-      - ./hass-runtime.yaml:/app/hass-runtime.yaml
-      - ./data:/app/data
+      - bifrost_data:/app/data
+
+volumes:
+  bifrost_data:

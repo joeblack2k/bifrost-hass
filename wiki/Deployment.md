@@ -2,33 +2,36 @@
 
 ## Docker Compose (GHCR)
 
-Use image:
+Image:
 
 - `ghcr.io/joeblack2k/bifrost-hass-ha-bridge:latest`
 
-Example compose:
+### Recommended steps
 
-```yaml
-services:
-  bifrost-hass:
-    image: ghcr.io/joeblack2k/bifrost-hass-ha-bridge:latest
-    container_name: bifrost-hass
-    restart: unless-stopped
-    network_mode: host
-    env_file:
-      - ./bifrost-hass.env
-    volumes:
-      - ./config.yaml:/app/config.yaml:ro
-      - ./hass-ui.yaml:/app/hass-ui.yaml
-      - ./hass-runtime.yaml:/app/hass-runtime.yaml
-      - ./data:/app/data
+1. Create a folder and download the ready-to-run compose template:
+
+```sh
+mkdir -p bifrost-hass
+cd bifrost-hass
+curl -fsSL https://raw.githubusercontent.com/joeblack2k/bifrost-hass-ha-bridge/master/deploy/docker-compose.ghcr.yaml -o compose.yaml
 ```
 
-## Required files
+2. Create `.env` with at least:
 
-- `config.yaml`
-- `hass-ui.yaml`
-- `hass-runtime.yaml`
-- `bifrost-hass.env` (contains `HASS_TOKEN`)
+```env
+BRIDGE_IP=192.168.1.50
+HASS_URL=http://192.168.1.10:8123
+HASS_TOKEN=
+```
 
-See repository README for complete examples.
+3. Start:
+
+```sh
+docker compose up -d
+```
+
+4. Open:
+
+- `http://<BRIDGE_IP>/bifrost/ui`
+
+No manual `config.yaml` editing is required for the standard flow.
