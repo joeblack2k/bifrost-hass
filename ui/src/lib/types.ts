@@ -1,5 +1,21 @@
 export type HassSensorKind = 'motion' | 'contact' | 'ignore'
 export type HassSwitchMode = 'plug' | 'light'
+export type HassFakeCloudMode = 'off' | 'connected' | 'outage' | 'custom'
+export type HassPortalCommunication = 'connected' | 'disconnected' | 'error'
+export type HassPortalConnectionState = 'connected' | 'disconnected' | 'connecting'
+export type HassPortalAction = 'none' | 'link_button'
+
+export interface HassFakeCloudState {
+  internet: boolean
+  signedon: boolean
+  incoming: boolean
+  outgoing: boolean
+  communication: HassPortalCommunication
+  connectionstate: HassPortalConnectionState
+  legacy: boolean
+  trusted: boolean
+  action: HassPortalAction
+}
 
 export interface HassRoomConfig {
   id: string
@@ -27,6 +43,11 @@ export interface HassUiConfig {
   ignored_area_names: string[]
   default_add_new_devices_to_hue: boolean
   sync_hass_areas_to_rooms: boolean
+  fake_cloud_mode: HassFakeCloudMode
+  fake_cloud_custom: HassFakeCloudState
+  hass_timezone?: string | null
+  hass_lat?: string | null
+  hass_long?: string | null
 }
 
 export interface HassEntitySummary {
@@ -65,6 +86,8 @@ export interface HassBridgeInfo {
   netmask: string
   gateway: string
   timezone: string
+  hass_lat?: string | null
+  hass_long?: string | null
   total_entities: number
   included_entities: number
   hidden_entities: number

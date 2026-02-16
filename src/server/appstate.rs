@@ -7,12 +7,18 @@ use camino::Utf8Path;
 use chrono::Utc;
 use tokio::sync::Mutex;
 
-use hue::legacy_api::{ApiConfig, ApiShortConfig, Whitelist};
+use hue::legacy_api::{
+    ApiConfig, ApiShortConfig, ConnectionState, Portal, PortalAction, PortalState, PortalTrust,
+    Whitelist,
+};
 use svc::manager::SvmClient;
 
 use crate::config::AppConfig;
 use crate::error::ApiResult;
-use crate::model::hass::{HassRuntimeState, HassUiState};
+use crate::model::hass::{
+    HassPortalAction, HassPortalCommunication, HassPortalConnectionState, HassRuntimeState,
+    HassUiState,
+};
 use crate::model::state::{State, StateVersion};
 use crate::resource::Resources;
 use crate::server::certificate;
@@ -148,7 +154,17 @@ impl AppState {
     }
 
     pub async fn api_config(&self, username: String) -> ApiResult<ApiConfig> {
-        let tz = tzfile::Tz::named(&self.conf.bridge.timezone)?;
+        let (ui_cfg, cloud) = {
+            let ui = self.hass_ui.lock().await;
+            let cfg = ui.config_normalized();
+            let cloud = cfg.effective_fake_cloud();
+            (cfg, cloud)
+        };
+        let timezone = ui_cfg
+            .hass_timezone
+            .clone()
+            .unwrap_or_else(|| self.conf.bridge.timezone.clone());
+        let tz = tzfile::Tz::named(&timezone)?;
         let localtime = Utc::now().with_timezone(&&tz).naive_local();
         let linkbutton = self.linkbutton_active().await;
 
@@ -157,7 +173,9 @@ impl AppState {
             ipaddress: self.conf.bridge.ipaddress,
             netmask: self.conf.bridge.netmask,
             gateway: self.conf.bridge.gateway,
-            timezone: self.conf.bridge.timezone.clone(),
+            timezone,
+            lat: ui_cfg.hass_lat.unwrap_or_else(|| "0.0000".to_string()),
+            long: ui_cfg.hass_long.unwrap_or_else(|| "0.0000".to_string()),
             whitelist: HashMap::from([(
                 username,
                 Whitelist {
@@ -168,9 +186,71 @@ impl AppState {
             )]),
             localtime,
             linkbutton,
+            internet: cloud.internet,
+            internetservices: hue::legacy_api::ApiInternetServices {
+                internet: if cloud.internet {
+                    ConnectionState::Connected
+                } else {
+                    ConnectionState::Disconnected
+                },
+                remoteaccess: if cloud.outgoing {
+                    ConnectionState::Connected
+                } else {
+                    ConnectionState::Disconnected
+                },
+                swupdate: if cloud.outgoing {
+                    ConnectionState::Connected
+                } else {
+                    ConnectionState::Disconnected
+                },
+                time: if cloud.outgoing {
+                    ConnectionState::Connected
+                } else {
+                    ConnectionState::Disconnected
+                },
+            },
+            portalconnection: map_connection_state(cloud.connectionstate),
+            portalstate: PortalState {
+                communication: map_communication_state(cloud.communication),
+                incoming: cloud.incoming,
+                outgoing: cloud.outgoing,
+                signedon: cloud.signedon,
+            },
+            portal: Portal {
+                legacy: cloud.legacy,
+                connectionstate: map_connection_state(cloud.connectionstate),
+                trust: PortalTrust {
+                    trusted: cloud.trusted,
+                },
+                action: map_portal_action(cloud.action),
+            },
+            portalservices: cloud.signedon,
             ..ApiConfig::default()
         };
 
         Ok(res)
+    }
+}
+
+fn map_communication_state(value: HassPortalCommunication) -> ConnectionState {
+    match value {
+        HassPortalCommunication::Connected => ConnectionState::Connected,
+        HassPortalCommunication::Disconnected => ConnectionState::Disconnected,
+        HassPortalCommunication::Error => ConnectionState::Error,
+    }
+}
+
+fn map_connection_state(value: HassPortalConnectionState) -> ConnectionState {
+    match value {
+        HassPortalConnectionState::Connected => ConnectionState::Connected,
+        HassPortalConnectionState::Disconnected => ConnectionState::Disconnected,
+        HassPortalConnectionState::Connecting => ConnectionState::Connecting,
+    }
+}
+
+fn map_portal_action(value: HassPortalAction) -> PortalAction {
+    match value {
+        HassPortalAction::None => PortalAction::None,
+        HassPortalAction::LinkButton => PortalAction::LinkButton,
     }
 }

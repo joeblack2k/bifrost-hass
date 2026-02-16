@@ -314,6 +314,9 @@ async fn get_bridge_info(State(state): State<AppState>) -> BifrostApiResult<Json
         defaults,
         sync_areas,
         sync_status,
+        ui_timezone,
+        hass_lat,
+        hass_long,
     ) = {
         let ui = state.hass_ui();
         let lock = ui.lock().await;
@@ -345,6 +348,9 @@ async fn get_bridge_info(State(state): State<AppState>) -> BifrostApiResult<Json
             defaults,
             sync_areas,
             lock.sync.clone(),
+            cfg.hass_timezone,
+            cfg.hass_lat,
+            cfg.hass_long,
         )
     };
 
@@ -356,7 +362,9 @@ async fn get_bridge_info(State(state): State<AppState>) -> BifrostApiResult<Json
         ipaddress: conf.bridge.ipaddress.to_string(),
         netmask: conf.bridge.netmask.to_string(),
         gateway: conf.bridge.gateway.to_string(),
-        timezone: conf.bridge.timezone.clone(),
+        timezone: ui_timezone.unwrap_or_else(|| conf.bridge.timezone.clone()),
+        hass_lat,
+        hass_long,
         total_entities,
         included_entities,
         hidden_entities,

@@ -23,6 +23,17 @@ pub struct HassState {
     pub attributes: Map<String, Value>,
 }
 
+#[derive(Clone, Debug, Deserialize)]
+pub struct HassCoreConfig {
+    #[serde(default)]
+    #[serde(alias = "time_zone")]
+    pub timezone: Option<String>,
+    #[serde(default)]
+    pub latitude: Option<f64>,
+    #[serde(default)]
+    pub longitude: Option<f64>,
+}
+
 pub struct HassClient {
     backend_name: String,
     base_url: Url,
@@ -225,6 +236,18 @@ impl HassClient {
             .send()
             .await?;
         let response = self.check_status(response, "GET /api/states").await?;
+        Ok(response.json().await?)
+    }
+
+    pub async fn get_core_config(&self) -> ApiResult<HassCoreConfig> {
+        let url = self.endpoint_url("/api/config")?;
+        let response = self
+            .http
+            .get(url)
+            .bearer_auth(self.token()?)
+            .send()
+            .await?;
+        let response = self.check_status(response, "GET /api/config").await?;
         Ok(response.json().await?)
     }
 

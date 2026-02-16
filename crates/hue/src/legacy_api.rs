@@ -126,6 +126,8 @@ pub struct NewUserReply {
 #[serde(rename_all = "lowercase")]
 pub enum ConnectionState {
     Connected,
+    Connecting,
+    Error,
     #[default]
     Disconnected,
 }
@@ -151,10 +153,10 @@ impl Default for ApiInternetServices {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PortalState {
-    communication: ConnectionState,
-    incoming: bool,
-    outgoing: bool,
-    signedon: bool,
+    pub communication: ConnectionState,
+    pub incoming: bool,
+    pub outgoing: bool,
+    pub signedon: bool,
 }
 
 impl Default for PortalState {
@@ -164,6 +166,37 @@ impl Default for PortalState {
             incoming: true,
             outgoing: true,
             signedon: true,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PortalAction {
+    None,
+    LinkButton,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PortalTrust {
+    pub trusted: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Portal {
+    pub legacy: bool,
+    pub connectionstate: ConnectionState,
+    pub trust: PortalTrust,
+    pub action: PortalAction,
+}
+
+impl Default for Portal {
+    fn default() -> Self {
+        Self {
+            legacy: false,
+            connectionstate: ConnectionState::Connected,
+            trust: PortalTrust { trusted: true },
+            action: PortalAction::None,
         }
     }
 }
@@ -252,11 +285,13 @@ pub struct ApiConfig {
     #[serde(flatten)]
     pub short_config: ApiShortConfig,
     pub dhcp: bool,
+    pub internet: bool,
     pub internetservices: ApiInternetServices,
     pub linkbutton: bool,
     pub portalconnection: ConnectionState,
     pub portalservices: bool,
     pub portalstate: PortalState,
+    pub portal: Portal,
     pub proxyaddress: String,
     pub proxyport: u16,
     pub swupdate2: SoftwareUpdate2,
@@ -265,6 +300,8 @@ pub struct ApiConfig {
     pub netmask: Ipv4Addr,
     pub gateway: Ipv4Addr,
     pub timezone: String,
+    pub lat: String,
+    pub long: String,
     #[serde(with = "date_format::legacy_utc", rename = "UTC")]
     pub utc: DateTime<Utc>,
     #[serde(with = "date_format::legacy_naive")]
@@ -848,11 +885,13 @@ impl Default for ApiConfig {
             backup: ApiBackup::default(),
             short_config: ApiShortConfig::default(),
             dhcp: true,
+            internet: true,
             internetservices: ApiInternetServices::default(),
             linkbutton: Default::default(),
             portalconnection: ConnectionState::Connected,
             portalservices: true,
             portalstate: PortalState::default(),
+            portal: Portal::default(),
             proxyaddress: "none".to_string(),
             proxyport: Default::default(),
             swupdate2: SoftwareUpdate2::new(),
@@ -861,6 +900,8 @@ impl Default for ApiConfig {
             netmask: Ipv4Addr::UNSPECIFIED,
             gateway: Ipv4Addr::UNSPECIFIED,
             timezone: best_guess_timezone(),
+            lat: "0.0000".to_string(),
+            long: "0.0000".to_string(),
             utc: Utc::now(),
             localtime: Local::now().naive_local(),
             whitelist: HashMap::new(),

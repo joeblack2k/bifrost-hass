@@ -23,6 +23,79 @@ pub enum HassSwitchMode {
     Light,
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum HassFakeCloudMode {
+    Off,
+    Connected,
+    Outage,
+    Custom,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum HassPortalCommunication {
+    #[default]
+    Connected,
+    Disconnected,
+    Error,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum HassPortalConnectionState {
+    #[default]
+    Connected,
+    Disconnected,
+    Connecting,
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum HassPortalAction {
+    #[default]
+    None,
+    LinkButton,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+pub struct HassFakeCloudState {
+    #[serde(default)]
+    pub internet: bool,
+    #[serde(default)]
+    pub signedon: bool,
+    #[serde(default)]
+    pub incoming: bool,
+    #[serde(default)]
+    pub outgoing: bool,
+    #[serde(default)]
+    pub communication: HassPortalCommunication,
+    #[serde(default)]
+    pub connectionstate: HassPortalConnectionState,
+    #[serde(default)]
+    pub legacy: bool,
+    #[serde(default)]
+    pub trusted: bool,
+    #[serde(default)]
+    pub action: HassPortalAction,
+}
+
+impl Default for HassFakeCloudState {
+    fn default() -> Self {
+        Self {
+            internet: false,
+            signedon: false,
+            incoming: false,
+            outgoing: false,
+            communication: HassPortalCommunication::Disconnected,
+            connectionstate: HassPortalConnectionState::Disconnected,
+            legacy: false,
+            trusted: true,
+            action: HassPortalAction::None,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct HassRoomConfig {
     pub id: String,
@@ -69,6 +142,16 @@ pub struct HassUiConfig {
     pub default_add_new_devices_to_hue: bool,
     #[serde(default = "HassUiConfig::default_sync_areas")]
     pub sync_hass_areas_to_rooms: bool,
+    #[serde(default = "HassUiConfig::default_fake_cloud_mode")]
+    pub fake_cloud_mode: HassFakeCloudMode,
+    #[serde(default)]
+    pub fake_cloud_custom: HassFakeCloudState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hass_timezone: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hass_lat: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hass_long: Option<String>,
 }
 
 impl Default for HassUiConfig {
@@ -83,6 +166,11 @@ impl Default for HassUiConfig {
             ignored_area_names: Vec::new(),
             default_add_new_devices_to_hue: Self::default_add_new(),
             sync_hass_areas_to_rooms: Self::default_sync_areas(),
+            fake_cloud_mode: Self::default_fake_cloud_mode(),
+            fake_cloud_custom: HassFakeCloudState::default(),
+            hass_timezone: None,
+            hass_lat: None,
+            hass_long: None,
         };
         cfg.ensure_default_room();
         cfg
@@ -104,6 +192,10 @@ impl HassUiConfig {
 
     const fn default_sync_areas() -> bool {
         true
+    }
+
+    const fn default_fake_cloud_mode() -> HassFakeCloudMode {
+        HassFakeCloudMode::Off
     }
 
     fn sanitize_id(text: &str) -> String {
@@ -161,6 +253,21 @@ impl HassUiConfig {
             .map(|x| x.trim().to_string())
             .filter(|x| !x.is_empty())
             .collect();
+        self.hass_timezone = self
+            .hass_timezone
+            .as_ref()
+            .map(|x| x.trim().to_string())
+            .filter(|x| !x.is_empty());
+        self.hass_lat = self
+            .hass_lat
+            .as_ref()
+            .map(|x| x.trim().to_string())
+            .filter(|x| !x.is_empty());
+        self.hass_long = self
+            .hass_long
+            .as_ref()
+            .map(|x| x.trim().to_string())
+            .filter(|x| !x.is_empty());
 
         let mut seen = BTreeSet::new();
         let mut normalized = Vec::new();
@@ -396,6 +503,48 @@ impl HassUiConfig {
             .find(|x| x.id == room_id)
             .map(|x| x.name.clone())
             .unwrap_or_else(|| room_id.to_string())
+    }
+
+    pub fn set_hass_location(
+        &mut self,
+        timezone: Option<String>,
+        lat: Option<String>,
+        long: Option<String>,
+    ) {
+        self.hass_timezone = timezone;
+        self.hass_lat = lat;
+        self.hass_long = long;
+        self.normalize();
+    }
+
+    #[must_use]
+    pub fn effective_fake_cloud(&self) -> HassFakeCloudState {
+        match self.fake_cloud_mode {
+            HassFakeCloudMode::Off => HassFakeCloudState::default(),
+            HassFakeCloudMode::Connected => HassFakeCloudState {
+                internet: true,
+                signedon: true,
+                incoming: true,
+                outgoing: true,
+                communication: HassPortalCommunication::Connected,
+                connectionstate: HassPortalConnectionState::Connected,
+                legacy: false,
+                trusted: true,
+                action: HassPortalAction::None,
+            },
+            HassFakeCloudMode::Outage => HassFakeCloudState {
+                internet: false,
+                signedon: true,
+                incoming: false,
+                outgoing: false,
+                communication: HassPortalCommunication::Disconnected,
+                connectionstate: HassPortalConnectionState::Disconnected,
+                legacy: false,
+                trusted: true,
+                action: HassPortalAction::None,
+            },
+            HassFakeCloudMode::Custom => self.fake_cloud_custom.clone(),
+        }
     }
 
     #[must_use]
@@ -952,6 +1101,10 @@ pub struct HassBridgeInfo {
     pub netmask: String,
     pub gateway: String,
     pub timezone: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hass_lat: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hass_long: Option<String>,
     pub total_entities: usize,
     pub included_entities: usize,
     pub hidden_entities: usize,

@@ -760,6 +760,7 @@ impl HassBackend {
         self.apply_runtime_connection().await?;
 
         let states = self.client.get_states().await?;
+        let core_config = self.client.get_core_config().await.ok();
         let area_map = match self.client.get_entity_areas().await {
             Ok(map) => map,
             Err(err) => {
@@ -782,6 +783,21 @@ impl HassBackend {
         let mut ui_state = self.ui_state.lock().await;
         let mut ui_config = ui_state.config_normalized();
         let mut changed = false;
+        if let Some(core) = core_config {
+            let timezone = core
+                .timezone
+                .map(|x| x.trim().to_string())
+                .filter(|x| !x.is_empty());
+            let lat = core.latitude.map(|x| format!("{x:.4}"));
+            let long = core.longitude.map(|x| format!("{x:.4}"));
+            if ui_config.hass_timezone != timezone
+                || ui_config.hass_lat != lat
+                || ui_config.hass_long != long
+            {
+                ui_config.set_hass_location(timezone, lat, long);
+                changed = true;
+            }
+        }
         if ui_config.sync_hass_areas_to_rooms {
             for imported in &parsed {
                 if let Some(area_name) = imported.area_name.as_deref() {
@@ -794,7 +810,7 @@ impl HassBackend {
         }
         if changed {
             ui_state.set_config(ui_config.clone());
-            ui_state.persist_and_log("Synced Home Assistant areas into Hue rooms")?;
+            ui_state.persist_and_log("Synced Home Assistant metadata into Bifrost state")?;
         } else {
             ui_state.set_config(ui_config.clone());
         }

@@ -36,7 +36,10 @@ use crate::routes::{ApiV1Error, ApiV1Result};
 use crate::server::appstate::AppState;
 
 async fn get_api_config(State(state): State<AppState>) -> Json<impl Serialize> {
-    Json(state.api_short_config().await)
+    match state.api_config("testuser".to_string()).await {
+        Ok(cfg) => Json(serde_json::to_value(cfg).unwrap_or_else(|_| json!({}))),
+        Err(_) => Json(serde_json::to_value(state.api_short_config().await).unwrap_or_else(|_| json!({}))),
+    }
 }
 
 async fn post_api(bytes: Bytes) -> ApiV1Result<Json<impl Serialize>> {

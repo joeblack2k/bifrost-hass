@@ -5,6 +5,7 @@ import type { HassEntitySummary, HassSensorKind, HassSwitchMode, HassUiConfig } 
 import { Panel } from './components/Panel'
 import { TactileButton } from './components/TactileButton'
 import { AboutPage } from './pages/AboutPage'
+import { AdvancedPage } from './pages/AdvancedPage'
 import { BridgePage } from './pages/BridgePage'
 import { EntitiesPage } from './pages/EntitiesPage'
 import { LogsPage } from './pages/LogsPage'
@@ -21,6 +22,7 @@ type TabId =
   | 'sensors'
   | 'hidden'
   | 'rooms'
+  | 'advanced'
   | 'bridge'
   | 'logs'
   | 'about'
@@ -32,6 +34,7 @@ const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'sensors', label: 'Sensors' },
   { id: 'hidden', label: 'Hidden' },
   { id: 'rooms', label: 'Rooms' },
+  { id: 'advanced', label: 'Advanced' },
   { id: 'bridge', label: 'Bridge' },
   { id: 'logs', label: 'Logs' },
   { id: 'about', label: 'About' },
@@ -53,6 +56,21 @@ function emptyConfig(): HassUiConfig {
     ignored_area_names: [],
     default_add_new_devices_to_hue: false,
     sync_hass_areas_to_rooms: true,
+    fake_cloud_mode: 'off',
+    fake_cloud_custom: {
+      internet: false,
+      signedon: false,
+      incoming: false,
+      outgoing: false,
+      communication: 'disconnected',
+      connectionstate: 'disconnected',
+      legacy: false,
+      trusted: true,
+      action: 'none',
+    },
+    hass_timezone: null,
+    hass_lat: null,
+    hass_long: null,
   }
 }
 
@@ -287,6 +305,8 @@ function AppContent(props: { data: ReturnType<typeof useBifrostData> }) {
           {tab === 'rooms' && (
             <RoomsPage config={config} onSaveConfig={saveConfig} onRefresh={data.refresh} />
           )}
+
+          {tab === 'advanced' && <AdvancedPage config={config} onSaveConfig={saveConfig} />}
 
           {tab === 'bridge' && payload && (
             <BridgePage payload={payload} bridge={data.bridge} onRefresh={data.refresh} />

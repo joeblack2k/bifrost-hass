@@ -29,6 +29,8 @@ export function BridgePage(props: {
       ['IP', b.ipaddress],
       ['MAC', b.mac],
       ['Timezone', b.timezone],
+      ['Latitude', b.hass_lat || '-'],
+      ['Longitude', b.hass_long || '-'],
       ['Entities', `${b.total_entities} total / ${b.included_entities} added / ${b.hidden_entities} hidden`],
       ['Rooms', String(b.room_count)],
       ['Last sync', b.sync_status?.last_sync_at || 'never'],
