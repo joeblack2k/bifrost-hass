@@ -89,7 +89,8 @@ fn get_groups(res: &MutexGuard<Resources>, group_0: bool) -> ApiResult<HashMap<S
             .children
             .iter()
             .filter_map(|rl| res.get(rl).ok())
-            .filter(|dev: &Device| {
+            .filter(|dev| {
+                let dev = *dev;
                 !matches!(
                     dev.product_data.product_archetype,
                     DeviceArchetype::Plug
